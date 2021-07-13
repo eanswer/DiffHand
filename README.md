@@ -6,7 +6,7 @@ In this paper, we propose a fully differentiable pipeline to jointly optimize th
 
 The framework itself is general and not limited to manipulator robots, we select the case study of manipulator robots because of its complexity and contact-rich nature. Welcome to try our code on any other types robots as well.
 
-<img src="demos/representative_image.jpg" alt="teaser" width="700" />
+<div style="text-align:center"><img src="demos/representative_image.jpg" alt="teaser" width="700" /></div>
 
 
 
@@ -36,7 +36,7 @@ The framework itself is general and not limited to manipulator robots, we select
 
    If you see a simulation rendering with a two-link pendulum as below, you have successfully installed the code base.
 
-   <img src="demos/test_redmax.gif" alt="test_redmax" width="500" />
+   <div style="text-align:center"><img src="demos/test_redmax.gif" alt="test_redmax" width="500" /></div>
 
 
 
@@ -104,4 +104,4 @@ We provide several examples to test the forward simulation and its differentiabi
 
   The initial control sequence is shown first and you can press [Esc] to close the rendering and start the optimization. After successful optimization, you will see a rendering as below:
 
-  <img src="demos/torque_finger_flick_optimized.gif" alt="finger_flick" width="500" />
+  <div style="text-align:center"><img src="demos/torque_finger_flick_optimized.gif" alt="finger_flick" width="500" /></div>
