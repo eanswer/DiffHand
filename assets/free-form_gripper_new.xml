@@ -1,0 +1,76 @@
+<redmax model="gripper">
+    <option integrator="BDF2" timestep="5e-3" gravity="0. 0. -980."/>
+
+    <ground pos="0 0 -10" normal="0 0 1"/>
+    <default>
+        <general_primitive_contact kn="1e5" kt="1e2" mu="0.5" damping="1e3"/>
+    </default>
+
+    <robot>
+        <link name="base">
+            <joint name="base" type="prismatic" axis="0 0 1" pos="0 0 2.5" quat="1 0 0 0" damping="1e2"/>
+            <body name="base" type="cuboid" size="40 10 5" pos="0 0 0" quat="1 0 0 0" density="0.01" damping="1e3" rgba="0.2 0.2 0.2 0"/>
+            <link name="link0" design_params="4">
+                <joint name="joint0" type="prismatic" axis="1 0 0" pos="-15.000000 0.000000 -7.5" quat="1.000000 0.000000 0.000000 0.000000" damping="1e3"/>
+                <body name="body0" type="abstract"  mesh="free-form_gripper_new/meshes/S.obj"  contacts="free-form_gripper_new/contacts/S.txt"  pos="-5.000000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="2"  inertia="2. 2. 2."  rgba="0.700000 0.700000 0.700000 1"/>
+            </link>
+            <link name="link1" design_params="4">
+                <joint name="joint1" type="prismatic" axis="1 0 0" pos="15.000000 0.000000 -7.5" quat="1.000000 0.000000 0.000000 0.000000" damping="1e3"/>
+                <body name="body1" type="abstract"  mesh="free-form_gripper_new/meshes/S.obj"  contacts="free-form_gripper_new/contacts/S.txt"  pos="-5.000000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="2"  inertia="2. 2. 2."  rgba="0.700000 0.700000 0.700000 1"/>
+            </link>
+        </link>
+    </robot>
+
+    <robot>
+        <link name="object-0">
+			<joint name="object-0" type="free3d-exp" pos = "0 0.0 -9.25" quat="1 0 0 1" format="LOCAL" damping="0"/>
+			<body name="object-0" type="cuboid" size="2. 2. 1.5" pos="0 0 0" quat="1 0 0 0" density="0.2" rgba="0.8 0.8 0.8 0"/>
+            <link name="object-1">
+                <joint name="object-1" type="fixed" pos = "0 0.0 1.5" quat="1 0 0 1" format="LOCAL" damping="0"/>
+                <body name="object-1" type="cuboid" size="4. 4. 1.5" pos="0 0 0" quat="1 0 0 0" density="0.2" rgba="0.6 0.6 0.6 0"/>
+                <link name="object-2">
+                    <joint name="object-2" type="fixed" pos="0 0 1.5" quat="1 0 0 0" format="LOCAL" damping="0"/>
+                    <body name="object-2" type="cuboid" size="6 6 1.5" pos="0 0 0" quat="1 0 0 0" density="0.2" rgba="0.4 0.4 0.4 0"/>
+                    <link name="object-3">
+                        <joint name="object-3" type="fixed" pos="0 0 1.5" quat="1 0 0 0" format="LOCAL" damping="0"/>
+                        <body name="object-3" type="cuboid" size="4 4 1.5" pos="0 0 0" quat="1 0 0 0" density="0.2" rgba="0.2 0.2 0.2 0"/>
+                        <link name="object-4">
+                            <joint name="object-4" type="fixed" pos="0 0 1.5" quat="1 0 0 0" format="LOCAL" damping="0"/>
+                            <body name="object-4" type="cuboid" size="2 2 1.5" pos="0 0 0" quat="1 0 0 0" density="0.2" rgba="0. 0. 0. 0"/>
+                        </link>
+                    </link>
+                </link>
+            </link>
+        </link>
+	</robot>
+
+    <actuator>
+        <motor joint="base"  ctrl="force" ctrl_range="-1e5 1e5"/>
+        <motor joint="joint0"  ctrl="force" ctrl_range="-1e5 1e5"/>
+        <motor joint="joint1"  ctrl="force" ctrl_range="-1e5 1e5"/>
+    </actuator>
+
+    <contact>
+		<ground_contact body="object-0" kn="1e5" kt="1e2" mu="0.5" damping="1e3"/>
+        <ground_contact body="object-1" kn="1e5" kt="1e2" mu="0.5" damping="1e3"/>
+        <ground_contact body="object-2" kn="1e5" kt="1e2" mu="0.5" damping="1e3"/>
+        <ground_contact body="object-3" kn="1e5" kt="1e2" mu="0.5" damping="1e3"/>
+        <ground_contact body="object-4" kn="1e5" kt="1e2" mu="0.5" damping="1e3"/>
+        <ground_contact body="body0" kn="1e5" kt="1e3" mu="0" damping="1e3"/>
+        <ground_contact body="body1" kn="1e5" kt="1e3" mu="0" damping="1e3"/>
+        <general_primitive_contact general_body="body0" primitive_body="object-0"/>
+		<general_primitive_contact general_body="body0" primitive_body="object-1"/>
+        <general_primitive_contact general_body="body0" primitive_body="object-2"/>
+        <general_primitive_contact general_body="body0" primitive_body="object-3"/>
+        <general_primitive_contact general_body="body0" primitive_body="object-4"/>
+        <general_primitive_contact general_body="body1" primitive_body="object-0"/>
+		<general_primitive_contact general_body="body1" primitive_body="object-1"/>
+        <general_primitive_contact general_body="body1" primitive_body="object-2"/>
+        <general_primitive_contact general_body="body1" primitive_body="object-3"/>
+        <general_primitive_contact general_body="body1" primitive_body="object-4"/>
+	</contact>
+
+    <variable>
+        <endeffector joint="object-0" pos="0 0 0" radius="0.2"/>
+	</variable>
+</redmax>

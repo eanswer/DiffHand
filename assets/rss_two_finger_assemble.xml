@@ -1,0 +1,249 @@
+<redmax model="assemble">
+    <option integrator="BDF2" timestep="1e-3" gravity="0. 0. -980."/>
+
+    <ground pos="0 0 -10" normal="0 0 1"/>
+    <default>
+        <general_primitive_contact kn="1e5" kt="5e3" mu="1.0" damping="1e3"/>
+    </default>
+
+    <robot>
+        <link name="link0" design_params="11">
+            <joint name="joint0" type="planar" axis0="1 0 0" axis1="0 1 0" pos="0.000000 0.000000 4.000000" quat="0.000000 1.000000 0.000000 0.000000" damping="1e4"/>
+            <body name="body0" type="abstract"  mesh="finger/meshes/palm.obj"  contacts="finger/contacts/palm.txt"  pos="-0.000000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="1"  inertia="1. 1. 1."  rgba="0.700000 0.700000 0.700000 1"/>
+            <link name="link1" design_params="11">
+                <joint name="joint1" type="fixed" pos="0.350000 0.000000 0.000000" quat="1.000000 0.000000 0.000000 0.000000"/>
+                <body name="body1" type="abstract"  mesh="finger/meshes/knuckle_parent.obj"  contacts="finger/contacts/knuckle_parent.txt"  pos="-0.000000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="1"  inertia="1. 1. 1."  rgba="0.700000 0.700000 0.700000 1"/>
+                <link name="link2" design_params="11">
+                    <joint name="joint2" type="revolute" axis="0.000000 0.000000 1.000000" pos="1.150000 0.000000 0.000000" quat="1.000000 0.000000 0.000000 0.000000" damping="1e5"/>
+                    <body name="body2" type="abstract"  mesh="finger/meshes/knuckle_child.obj"  contacts="finger/contacts/knuckle_child.txt"  pos="-1.150000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="1"  inertia="1. 1. 1."  rgba="0.600000 0.600000 0.600000 1"/>
+                    <link name="link3" design_params="11">
+                        <joint name="joint3" type="fixed" pos="1.600000 0.000000 0.000000" quat="1.000000 0.000000 0.000000 0.000000"/>
+                        <body name="body3" type="abstract"  mesh="finger/meshes/joint_parent.obj"  contacts="finger/contacts/joint_parent.txt"  pos="-0.000000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="1"  inertia="1. 1. 1."  rgba="0.600000 0.600000 0.600000 1"/>
+                        <link name="link4" design_params="11">
+                            <joint name="joint4" type="revolute" axis="0.000000 1.000000 0.000000" pos="1.080000 0.000000 0.000000" quat="1.000000 0.000000 0.000000 0.000000" damping="1e5"/>
+                            <body name="body4" type="abstract"  mesh="finger/meshes/joint_child.obj"  contacts="finger/contacts/joint_child.txt"  pos="-1.080000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="1"  inertia="1. 1. 1."  rgba="0.500000 0.500000 0.500000 1"/>
+                            <link name="link5" design_params="11">
+                                <joint name="joint5" type="fixed" pos="0.980000 0.000000 0.000000" quat="1.000000 0.000000 0.000000 0.000000"/>
+                                <body name="body5" type="abstract"  mesh="finger/meshes/phalanx.obj"  contacts="finger/contacts/phalanx.txt"  pos="-0.000000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="1"  inertia="1. 1. 1."  rgba="0.500000 0.500000 0.500000 1"/>
+                                <link name="link6" design_params="11">
+                                    <joint name="joint6" type="fixed" pos="2.340000 0.000000 0.000000" quat="1.000000 0.000000 0.000000 0.000000"/>
+                                    <body name="body6" type="abstract"  mesh="finger/meshes/joint_parent.obj"  contacts="finger/contacts/joint_parent.txt"  pos="-0.000000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="1"  inertia="1. 1. 1."  rgba="0.500000 0.500000 0.500000 1"/>
+                                    <link name="link7" design_params="11">
+                                        <joint name="joint7" type="revolute" axis="0.000000 1.000000 0.000000" pos="1.080000 0.000000 0.000000" quat="1.000000 0.000000 0.000000 0.000000" damping="1e5"/>
+                                        <body name="body7" type="abstract"  mesh="finger/meshes/joint_child.obj"  contacts="finger/contacts/joint_child.txt"  pos="-1.080000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="1"  inertia="1. 1. 1."  rgba="0.400000 0.400000 0.400000 1"/>
+                                        <link name="link8" design_params="47">
+                                            <joint name="joint8" type="fixed" pos="0.980000 0.000000 0.000000" quat="1.000000 0.000000 0.000000 0.000000"/>
+                                            <body name="body8" type="abstract"  mesh="finger/meshes/phalanx.obj"  contacts="finger/contacts/phalanx.txt"  pos="-0.000000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="1"  inertia="1. 1. 1."  rgba="0.400000 0.400000 0.400000 1"/>
+                                            <link name="link9" design_params="47">
+                                                <joint name="joint9" type="fixed" pos="2.340000 0.000000 0.000000" quat="1.000000 0.000000 0.000000 0.000000"/>
+                                                <body name="body9" type="abstract"  mesh="finger/meshes/tip.obj"  contacts="finger/contacts/tip.txt"  pos="-0.000000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="1"  inertia="1. 1. 1."  rgba="0.400000 0.400000 0.400000 1"/>
+                                                <link name="endeffector0" design_params="1">
+                                                    <joint name="joint-endeffector0" type="fixed" pos="0.9 0.0 1.5" quat="1. 0. 0. 0."/>
+                                                    <body name="body-endeffector0" type="cuboid" pos="0 0 0" quat="1 0 0 0" size="0.1 0.1 0.1" density="0.1"/>
+                                                </link>
+                                            </link>
+                                        </link>
+                                    </link>
+                                </link>
+                            </link>
+                        </link>
+                    </link>
+                </link>
+            </link>
+            <link name="link10" design_params="11">
+                <joint name="joint10" type="fixed" pos="-0.350000 0.000000 0.000000" quat="0.000000 0.000000 0.000000 1.000000"/>
+                <body name="body10" type="abstract"  mesh="finger/meshes/knuckle_parent.obj"  contacts="finger/contacts/knuckle_parent.txt"  pos="-0.000000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="1"  inertia="1. 1. 1."  rgba="0.700000 0.700000 0.700000 1"/>
+                <link name="link11" design_params="11">
+                    <joint name="joint11" type="revolute" axis="0.000000 0.000000 1.000000" pos="1.150000 0.000000 0.000000" quat="1.000000 0.000000 0.000000 0.000000" damping="1e5"/>
+                    <body name="body11" type="abstract"  mesh="finger/meshes/knuckle_child.obj"  contacts="finger/contacts/knuckle_child.txt"  pos="-1.150000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="1"  inertia="1. 1. 1."  rgba="0.600000 0.600000 0.600000 1"/>
+                    <link name="link12" design_params="11">
+                        <joint name="joint12" type="fixed" pos="1.600000 0.000000 0.000000" quat="1.000000 0.000000 0.000000 0.000000"/>
+                        <body name="body12" type="abstract"  mesh="finger/meshes/joint_parent.obj"  contacts="finger/contacts/joint_parent.txt"  pos="-0.000000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="1"  inertia="1. 1. 1."  rgba="0.600000 0.600000 0.600000 1"/>
+                        <link name="link13" design_params="11">
+                            <joint name="joint13" type="revolute" axis="0.000000 1.000000 0.000000" pos="1.080000 0.000000 0.000000" quat="1.000000 0.000000 0.000000 0.000000" damping="1e5"/>
+                            <body name="body13" type="abstract"  mesh="finger/meshes/joint_child.obj"  contacts="finger/contacts/joint_child.txt"  pos="-1.080000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="1"  inertia="1. 1. 1."  rgba="0.500000 0.500000 0.500000 1"/>
+                            <link name="link14" design_params="11">
+                                <joint name="joint14" type="fixed" pos="0.980000 0.000000 0.000000" quat="1.000000 0.000000 0.000000 0.000000"/>
+                                <body name="body14" type="abstract"  mesh="finger/meshes/phalanx.obj"  contacts="finger/contacts/phalanx.txt"  pos="-0.000000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="1"  inertia="1. 1. 1."  rgba="0.500000 0.500000 0.500000 1"/>
+                                <link name="link15" design_params="11">
+                                    <joint name="joint15" type="fixed" pos="2.340000 0.000000 0.000000" quat="1.000000 0.000000 0.000000 0.000000"/>
+                                    <body name="body15" type="abstract"  mesh="finger/meshes/joint_parent.obj"  contacts="finger/contacts/joint_parent.txt"  pos="-0.000000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="1"  inertia="1. 1. 1."  rgba="0.500000 0.500000 0.500000 1"/>
+                                    <link name="link16" design_params="11">
+                                        <joint name="joint16" type="revolute" axis="0.000000 1.000000 0.000000" pos="1.080000 0.000000 0.000000" quat="1.000000 0.000000 0.000000 0.000000" damping="1e5"/>
+                                        <body name="body16" type="abstract"  mesh="finger/meshes/joint_child.obj"  contacts="finger/contacts/joint_child.txt"  pos="-1.080000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="1"  inertia="1. 1. 1."  rgba="0.400000 0.400000 0.400000 1"/>
+                                        <link name="link17" design_params="47">
+                                            <joint name="joint17" type="fixed" pos="0.980000 0.000000 0.000000" quat="1.000000 0.000000 0.000000 0.000000"/>
+                                            <body name="body17" type="abstract"  mesh="finger/meshes/phalanx.obj"  contacts="finger/contacts/phalanx.txt"  pos="-0.000000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="1"  inertia="1. 1. 1."  rgba="0.400000 0.400000 0.400000 1"/>
+                                            <link name="link18" design_params="47">
+                                                <joint name="joint18" type="fixed" pos="2.340000 0.000000 0.000000" quat="1.000000 0.000000 0.000000 0.000000"/>
+                                                <body name="body18" type="abstract"  mesh="finger/meshes/tip.obj"  contacts="finger/contacts/tip.txt"  pos="-0.000000 -0.000000 -0.000000" quat="1.000000 0.000000 0.000000 0.000000" mass="1"  inertia="1. 1. 1."  rgba="0.400000 0.400000 0.400000 1"/>
+                                                <link name="endeffector1" design_params="1">
+                                                    <joint name="joint-endeffector1" type="fixed" pos="0.9 0.0 1.5" quat="1. 0. 0. 0."/>
+                                                    <body name="body-endeffector1" type="cuboid" pos="0 0 0" quat="1 0 0 0" size="0.1 0.1 0.1" density="0.1"/>
+                                                </link>
+                                            </link>
+                                        </link>
+                                    </link>
+                                </link>
+                            </link>
+                        </link>
+                    </link>
+                </link>
+            </link>
+        </link>
+    </robot>
+
+    <robot>
+		<link name="box0-part0">
+			<joint name="box0-part0" type="free2d" pos = "0 0.0 -7" quat="1 0 0 0" format="LOCAL" damping="1e3"/>
+			<body name="box0-part0" type="cuboid" size="3. 8. 6." pos="-1.5 0 0" quat="1 0 0 0" density="0.2" rgba="0.2 0.2 0.2 1"/>
+            <link name="box0-part1">
+                <joint name="box0-part1" type="fixed" pos = "1.5 0 1.5" quat="1 0 0 0"/>
+                <body name="box0-part1" type="cuboid" size="3 3 3" pos="0 0 0" quat="1 0 0 0" density="0.2" rgba="0.4 0.4 0.4 1"/> 
+            </link>
+            <link name="box0-part2">
+                <joint name="box0-part2" type="fixed" pos = "0 -2.75 0" quat="1 0 0 0"/>
+                <body name="box0-part2" type="cuboid" size="3 2.5 6" pos="1.5 0 0" quat="1 0 0 0" density="0.2" rgba="0.6 0.6 0.6 1"/> 
+            </link>
+            <link name="box0-part3">
+                <joint name="box0-part3" type="fixed" pos = "0 2.75 0" quat="1 0 0 0"/>
+                <body name="box0-part3" type="cuboid" size="3 2.5 6" pos="1.5 0 0" quat="1 0 0 0" density="0.2" rgba="0.6 0.6 0.6 1"/> 
+            </link>
+		</link>
+	</robot>
+
+    <robot>
+        <link name="box1">
+            <joint name="box1" type="free2d" pos="8. 2. -8.6" quat="1 0 0 0" damping="1e3"/>
+            <body name="box1" type="cuboid" size="2.8 2.8 2.8" pos="0 0 0" quat="1 0 0 0" density="0.2" rgba="0.8 0.8 0.8 1"/>
+        </link>
+    </robot>
+
+    <actuator>
+        <motor joint="joint0"  ctrl="force"  ctrl_range="-6e5 6e5"/>
+        <motor joint="joint2"  ctrl="force"  ctrl_range="-6e5 6e5"/>
+        <motor joint="joint4"  ctrl="force"  ctrl_range="-6e5 6e5"/>
+        <motor joint="joint7"  ctrl="force"  ctrl_range="-6e5 6e5"/>
+        <motor joint="joint11"  ctrl="force"  ctrl_range="-6e5 6e5"/>
+        <motor joint="joint13"  ctrl="force"  ctrl_range="-6e5 6e5"/>
+        <motor joint="joint16"  ctrl="force"  ctrl_range="-6e5 6e5"/>
+    </actuator>
+
+    <contact>
+        <ground_contact body="body7" kn="1e6" kt="5e3" mu="1.5" damping="3e1"/>
+        <ground_contact body="body8" kn="1e6" kt="5e3" mu="1.5" damping="3e1"/>
+        <ground_contact body="body9" kn="1e6" kt="5e3" mu="1.5" damping="3e1"/>
+        <ground_contact body="body16" kn="1e6" kt="5e3" mu="1.5" damping="3e1"/>
+        <ground_contact body="body17" kn="1e6" kt="5e3" mu="1.5" damping="3e1"/>
+        <ground_contact body="body18" kn="1e6" kt="5e3" mu="1.5" damping="3e1"/>
+        <general_primitive_contact general_body="body0" primitive_body="box1"/>
+		<general_primitive_contact general_body="body1" primitive_body="box1"/>
+		<general_primitive_contact general_body="body2" primitive_body="box1"/>
+        <general_primitive_contact general_body="body3" primitive_body="box1"/>
+		<general_primitive_contact general_body="body4" primitive_body="box1"/>
+		<general_primitive_contact general_body="body5" primitive_body="box1"/>
+		<general_primitive_contact general_body="body6" primitive_body="box1"/>
+		<general_primitive_contact general_body="body7" primitive_body="box1"/>
+		<general_primitive_contact general_body="body8" primitive_body="box1"/>
+		<general_primitive_contact general_body="body9" primitive_body="box1"/>
+		<general_primitive_contact general_body="body10" primitive_body="box1"/>
+        <general_primitive_contact general_body="body11" primitive_body="box1"/>
+        <general_primitive_contact general_body="body12" primitive_body="box1"/>
+        <general_primitive_contact general_body="body13" primitive_body="box1"/>
+        <general_primitive_contact general_body="body14" primitive_body="box1"/>
+        <general_primitive_contact general_body="body15" primitive_body="box1"/>
+        <general_primitive_contact general_body="body16" primitive_body="box1"/>
+        <general_primitive_contact general_body="body17" primitive_body="box1"/>
+        <general_primitive_contact general_body="body18" primitive_body="box1"/>
+        <general_primitive_contact general_body="body0" primitive_body="box0-part0"/>
+		<general_primitive_contact general_body="body1" primitive_body="box0-part0"/>
+		<general_primitive_contact general_body="body2" primitive_body="box0-part0"/>
+        <general_primitive_contact general_body="body3" primitive_body="box0-part0"/>
+		<general_primitive_contact general_body="body4" primitive_body="box0-part0"/>
+		<general_primitive_contact general_body="body5" primitive_body="box0-part0"/>
+		<general_primitive_contact general_body="body6" primitive_body="box0-part0"/>
+		<general_primitive_contact general_body="body7" primitive_body="box0-part0"/>
+		<general_primitive_contact general_body="body8" primitive_body="box0-part0"/>
+		<general_primitive_contact general_body="body9" primitive_body="box0-part0"/>
+		<general_primitive_contact general_body="body10" primitive_body="box0-part0"/>
+        <general_primitive_contact general_body="body11" primitive_body="box0-part0"/>
+        <general_primitive_contact general_body="body12" primitive_body="box0-part0"/>
+        <general_primitive_contact general_body="body13" primitive_body="box0-part0"/>
+        <general_primitive_contact general_body="body14" primitive_body="box0-part0"/>
+        <general_primitive_contact general_body="body15" primitive_body="box0-part0"/>
+        <general_primitive_contact general_body="body16" primitive_body="box0-part0"/>
+        <general_primitive_contact general_body="body17" primitive_body="box0-part0"/>
+        <general_primitive_contact general_body="body18" primitive_body="box0-part0"/>
+        <general_primitive_contact general_body="body0" primitive_body="box0-part1"/>
+		<general_primitive_contact general_body="body1" primitive_body="box0-part1"/>
+		<general_primitive_contact general_body="body2" primitive_body="box0-part1"/>
+        <general_primitive_contact general_body="body3" primitive_body="box0-part1"/>
+		<general_primitive_contact general_body="body4" primitive_body="box0-part1"/>
+		<general_primitive_contact general_body="body5" primitive_body="box0-part1"/>
+		<general_primitive_contact general_body="body6" primitive_body="box0-part1"/>
+		<general_primitive_contact general_body="body7" primitive_body="box0-part1"/>
+		<general_primitive_contact general_body="body8" primitive_body="box0-part1"/>
+		<general_primitive_contact general_body="body9" primitive_body="box0-part1"/>
+		<general_primitive_contact general_body="body10" primitive_body="box0-part1"/>
+        <general_primitive_contact general_body="body11" primitive_body="box0-part1"/>
+        <general_primitive_contact general_body="body12" primitive_body="box0-part1"/>
+        <general_primitive_contact general_body="body13" primitive_body="box0-part1"/>
+        <general_primitive_contact general_body="body14" primitive_body="box0-part1"/>
+        <general_primitive_contact general_body="body15" primitive_body="box0-part1"/>
+        <general_primitive_contact general_body="body16" primitive_body="box0-part1"/>
+        <general_primitive_contact general_body="body17" primitive_body="box0-part1"/>
+        <general_primitive_contact general_body="body18" primitive_body="box0-part1"/>
+        <general_primitive_contact general_body="body0" primitive_body="box0-part2"/>
+		<general_primitive_contact general_body="body1" primitive_body="box0-part2"/>
+		<general_primitive_contact general_body="body2" primitive_body="box0-part2"/>
+        <general_primitive_contact general_body="body3" primitive_body="box0-part2"/>
+		<general_primitive_contact general_body="body4" primitive_body="box0-part2"/>
+		<general_primitive_contact general_body="body5" primitive_body="box0-part2"/>
+		<general_primitive_contact general_body="body6" primitive_body="box0-part2"/>
+		<general_primitive_contact general_body="body7" primitive_body="box0-part2"/>
+		<general_primitive_contact general_body="body8" primitive_body="box0-part2"/>
+		<general_primitive_contact general_body="body9" primitive_body="box0-part2"/>
+		<general_primitive_contact general_body="body10" primitive_body="box0-part2"/>
+        <general_primitive_contact general_body="body11" primitive_body="box0-part2"/>
+        <general_primitive_contact general_body="body12" primitive_body="box0-part2"/>
+        <general_primitive_contact general_body="body13" primitive_body="box0-part2"/>
+        <general_primitive_contact general_body="body14" primitive_body="box0-part2"/>
+        <general_primitive_contact general_body="body15" primitive_body="box0-part2"/>
+        <general_primitive_contact general_body="body16" primitive_body="box0-part2"/>
+        <general_primitive_contact general_body="body17" primitive_body="box0-part2"/>
+        <general_primitive_contact general_body="body18" primitive_body="box0-part2"/>
+        <general_primitive_contact general_body="body0" primitive_body="box0-part3"/>
+		<general_primitive_contact general_body="body1" primitive_body="box0-part3"/>
+		<general_primitive_contact general_body="body2" primitive_body="box0-part3"/>
+        <general_primitive_contact general_body="body3" primitive_body="box0-part3"/>
+		<general_primitive_contact general_body="body4" primitive_body="box0-part3"/>
+		<general_primitive_contact general_body="body5" primitive_body="box0-part3"/>
+		<general_primitive_contact general_body="body6" primitive_body="box0-part3"/>
+		<general_primitive_contact general_body="body7" primitive_body="box0-part3"/>
+		<general_primitive_contact general_body="body8" primitive_body="box0-part3"/>
+		<general_primitive_contact general_body="body9" primitive_body="box0-part3"/>
+		<general_primitive_contact general_body="body10" primitive_body="box0-part3"/>
+        <general_primitive_contact general_body="body11" primitive_body="box0-part3"/>
+        <general_primitive_contact general_body="body12" primitive_body="box0-part3"/>
+        <general_primitive_contact general_body="body13" primitive_body="box0-part3"/>
+        <general_primitive_contact general_body="body14" primitive_body="box0-part3"/>
+        <general_primitive_contact general_body="body15" primitive_body="box0-part3"/>
+        <general_primitive_contact general_body="body16" primitive_body="box0-part3"/>
+        <general_primitive_contact general_body="body17" primitive_body="box0-part3"/>
+        <general_primitive_contact general_body="body18" primitive_body="box0-part3"/>
+        <general_primitive_contact general_body="box1" primitive_body="box0-part0" kn="1e5" kt="1e3" mu="1.0" damping="1e3"/>
+        <general_primitive_contact general_body="box1" primitive_body="box0-part1" kn="1e5" kt="1e3" mu="1.0" damping="1e3"/>
+        <general_primitive_contact general_body="box1" primitive_body="box0-part2" kn="1e5" kt="1e3" mu="1.0" damping="1e3"/>
+        <general_primitive_contact general_body="box1" primitive_body="box0-part3" kn="1e5" kt="1e3" mu="1.0" damping="1e3"/>
+	</contact>
+
+    <variable>
+		<endeffector joint="joint-endeffector0" pos="0 0 0" radius="0.2"/>
+        <endeffector joint="joint-endeffector1" pos="0 0 0" radius="0.2"/>
+        <endeffector joint="box0-part0" pos="0 0 0" radius="0.2"/>
+        <endeffector joint="box0-part0" pos="0 0 0" radius="0.2"/>
+        <endeffector joint="box0-part0" pos="1.5 0 -1.5" radius="0.2"/>
+        <endeffector joint="box1" pos="0 0 0" radius="0.2"/>
+        <endeffector joint="box1" pos="0 0 0" radius="0.2"/>
+	</variable>
+</redmax>

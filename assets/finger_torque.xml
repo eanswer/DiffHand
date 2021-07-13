@@ -1,0 +1,37 @@
+<redmax model="torque-driven-finger">
+    <option integrator="BDF2" timestep="0.01" gravity="0. 0. -980."/>
+    <ground pos="0 0 0" normal="0 0 1"/>
+
+    <default>
+        <body density = "1." mu="0" rgba="0.25 0.148 0.06475 1"/>
+    </default>
+
+    <robot>
+        <link name="proximal">
+            <joint name="MCP" type="revolute" axis="0 1 0" pos="0 0 10" quat="1 0 0 0" damping="1e4"/>
+            <body type="cuboid" size="4. 1. 1." pos="2 0 0" quat="1 0 0 0"/>
+			<link name="middle">
+				<joint name="PIP" type="revolute" axis="0 1 0" pos="4 0 0" quat="1 0 0 0" damping="1e4"/>
+				<body type="cuboid" size="2. 1. 1." pos="1 0 0" quat="1 0 0 0"/>
+				<link name="distal">
+					<joint name="DIP" type="revolute" axis="0 1 0" pos="2 0 0" quat="1 0 0 0" damping="1e4"/>
+					<body type="cuboid" size="1. 1. 1." pos="0.5 0 0" quat="1 0 0 0"/>
+				</link>
+			</link>
+        </link>
+    </robot>
+	
+	<virtual>
+		<sphere name="target point" pos="10 0 0" radius="0.5" rgba="0 1 0 1"/>
+	</virtual>
+
+	<actuator>
+		<motor joint="MCP" ctrl="force" ctrl_range="-1e5 1e5"/>
+		<motor joint="PIP" ctrl="force" ctrl_range="-1e5 1e5"/>
+		<motor joint="DIP" ctrl="force" ctrl_range="-1e5 1e5"/>
+    </actuator>
+	
+	<variable>
+		<endeffector joint="DIP" pos="1 0 0" radius="0.5"/>
+	</variable>
+</redmax>

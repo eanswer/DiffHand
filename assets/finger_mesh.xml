@@ -1,0 +1,42 @@
+<redmax model="finger_mesh">
+    <option integrator="BDF2" timestep="0.01" gravity="0. 0. -980."/>
+	<ground pos="0 0 -10" normal="0 0 1"/>
+
+    <robot>
+        <link name="link0">
+            <joint name="joint0" type="revolute" axis="0.000000 -0.000000 -1.000000" pos="1.059220 0.000000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e5"/>
+            <body name="body0" type="mesh"  filename="finger_mesh_old/body0.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.500000 0.500000 0.500000 1"/>
+            <link name="link1">
+                <joint name="joint1" type="revolute" axis="0.000000 1.000000 0.000000" pos="3.039220 0.000000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e5"/>
+                <body name="body1" type="mesh"  filename="finger_mesh_old/body1.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.400000 0.400000 0.400000 1"/>
+                    <link name="link2">
+                        <joint name="joint2" type="revolute" axis="0.000000 1.000000 0.000000" pos="7.439220 0.000000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e5"/>
+                        <body name="body2" type="mesh"  filename="finger_mesh_old/body2.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.300000 0.300000 0.300000 1"/>
+                            <link name="link3">
+                                <joint name="joint3" type="revolute" axis="0.000000 1.000000 0.000000" pos="11.839220 0.000000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e5"/>
+                                <body name="body3" type="mesh"  filename="finger_mesh_old/body3.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.200000 0.200000 0.200000 1"/>
+                            </link>
+                    </link>
+            </link>
+        </link>
+    </robot>
+
+    <actuator>
+        <motor joint="joint0"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+        <motor joint="joint1"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+        <motor joint="joint2"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+        <motor joint="joint3"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+    </actuator>
+
+	<contact>
+		<ground_contact body="body3" kn="1e6" kt="1e4" mu="0.8" damping="3e1"/>
+	</contact>
+
+	<variable>
+		<endeffector joint="joint3" pos="5.5 0 0" radius="0.5"/>
+	</variable>
+
+	<virtual>
+		<sphere name="target point" pos="10 0 0" radius="0.5" rgba="0 1 0 1"/>
+	</virtual>
+</redmax>

@@ -1,0 +1,131 @@
+<redmax model="hand">
+    <option integrator="BDF2" timestep="0.01" gravity="0. 0. -980."/>
+	<ground pos="0 0 -10" normal="0 0 1"/>
+	<default>
+        <general_primitive_contact kn="1e6" kt="1e3" mu="0.8" damping="3e1" />
+    </default>
+
+    <robot>
+        <link name="link0">
+            <joint name="joint0" type="fixed" pos="0 0 0" quat="1 0 0 0" frame="WORLD"/>
+            <body name="body0" type="mesh"  filename="hand/body0.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.700000 0.700000 0.700000 1"/>
+            <link name="link1">
+                <joint name="joint1" type="revolute" axis="0.000000 0.000000 -1.000000" pos="-3.300000 -5.689700 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e7"/>
+                <body name="body1" type="mesh"  filename="hand/body1.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.600000 0.600000 0.600000 1"/>
+                <link name="link2">
+                    <joint name="joint2" type="revolute" axis="1.000000 0.000000 0.000000" pos="-3.300000 -7.680000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e7"/>
+                    <body name="body2" type="mesh"  filename="hand/body2.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.500000 0.500000 0.500000 1"/>
+                </link>
+            </link>
+            <link name="link3">
+                <joint name="joint3" type="revolute" axis="0.000000 0.000000 -1.000000" pos="4.689700 -4.425000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e7"/>
+                <body name="body3" type="mesh"  filename="hand/body3.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.600000 0.600000 0.600000 1"/>
+                <link name="link4">
+                    <joint name="joint4" type="revolute" axis="0.000000 1.000000 0.000000" pos="6.680000 -4.425000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e7"/>
+                    <body name="body4" type="mesh"  filename="hand/body4.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.500000 0.500000 0.500000 1"/>
+                        <link name="link5">
+                            <joint name="joint5" type="revolute" axis="0.000000 1.000000 0.000000" pos="11.080000 -4.425000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e7"/>
+                            <body name="body5" type="mesh"  filename="hand/body5.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.400000 0.400000 0.400000 1"/>
+                                <link name="link6">
+                                    <joint name="joint6" type="revolute" axis="0.000000 1.000000 0.000000" pos="15.480000 -4.425000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e7"/>
+                                    <body name="body6" type="mesh"  filename="hand/body6.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.300000 0.300000 0.300000 1"/>
+                                </link>
+                        </link>
+                </link>
+            </link>
+            <link name="link7">
+                <joint name="joint7" type="revolute" axis="0.000000 0.000000 -1.000000" pos="4.689700 -1.475000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e7"/>
+                <body name="body7" type="mesh"  filename="hand/body7.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.600000 0.600000 0.600000 1"/>
+                <link name="link8">
+                    <joint name="joint8" type="revolute" axis="0.000000 1.000000 0.000000" pos="6.680000 -1.475000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e7"/>
+                    <body name="body8" type="mesh"  filename="hand/body8.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.500000 0.500000 0.500000 1"/>
+                        <link name="link9">
+                            <joint name="joint9" type="revolute" axis="0.000000 1.000000 0.000000" pos="11.080000 -1.475000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e7"/>
+                            <body name="body9" type="mesh"  filename="hand/body9.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.400000 0.400000 0.400000 1"/>
+                                <link name="link10">
+                                    <joint name="joint10" type="revolute" axis="0.000000 1.000000 0.000000" pos="15.480000 -1.475000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e7"/>
+                                    <body name="body10" type="mesh"  filename="hand/body10.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.300000 0.300000 0.300000 1"/>
+                                </link>
+                        </link>
+                </link>
+            </link>
+            <link name="link11">
+                <joint name="joint11" type="revolute" axis="0.000000 0.000000 -1.000000" pos="4.689700 1.475000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e7"/>
+                <body name="body11" type="mesh"  filename="hand/body11.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.600000 0.600000 0.600000 1"/>
+                <link name="link12">
+                    <joint name="joint12" type="revolute" axis="0.000000 1.000000 0.000000" pos="6.680000 1.475000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e7"/>
+                    <body name="body12" type="mesh"  filename="hand/body12.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.500000 0.500000 0.500000 1"/>
+                        <link name="link13">
+                            <joint name="joint13" type="revolute" axis="0.000000 1.000000 0.000000" pos="11.080000 1.475000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e7"/>
+                            <body name="body13" type="mesh"  filename="hand/body13.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.400000 0.400000 0.400000 1"/>
+                                <link name="link14">
+                                    <joint name="joint14" type="revolute" axis="0.000000 1.000000 0.000000" pos="15.480000 1.475000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e7"/>
+                                    <body name="body14" type="mesh"  filename="hand/body14.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.300000 0.300000 0.300000 1"/>
+                                </link>
+                        </link>
+                </link>
+            </link>
+            <link name="link15">
+                <joint name="joint15" type="revolute" axis="0.000000 0.000000 -1.000000" pos="4.689700 4.425000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e7"/>
+                <body name="body15" type="mesh"  filename="hand/body15.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.600000 0.600000 0.600000 1"/>
+                <link name="link16">
+                    <joint name="joint16" type="revolute" axis="0.000000 1.000000 0.000000" pos="6.680000 4.425000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e7"/>
+                    <body name="body16" type="mesh"  filename="hand/body16.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.500000 0.500000 0.500000 1"/>
+                        <link name="link17">
+                            <joint name="joint17" type="revolute" axis="0.000000 1.000000 0.000000" pos="11.080000 4.425000 0.000000" quat="1 0 0 0" frame="WORLD" damping="1e7"/>
+                            <body name="body17" type="mesh"  filename="hand/body17.obj"  pos="0 0 0"  quat="1 0 0 0"  transform_type="OBJ_TO_WORLD"  density="1"  mu="0" rgba="0.400000 0.400000 0.400000 1"/>
+                        </link>
+                </link>
+            </link>
+        </link>
+    </robot>
+	
+	<robot>
+		<link name="sphere">
+			<joint name="sphere" type="free2d" pos = "10. 0.0 3.5" quat="1 -1 0 0" format="LOCAL" damping="0"/>
+			<body name="sphere" type="sphere" radius="2" pos="0 0 0" quat="1 0 0 0" density="0.5" mu="0" texture="resources/textures/sphere.jpg"/>
+		</link>
+	</robot>
+	
+	<contact>
+		<ground_contact body="sphere" kn="1e6" kt="1e3" mu="0.8" damping="3e1"/>
+		<general_primitive_contact general_body="body0" primitive_body="sphere"/>
+		<general_primitive_contact general_body="body1" primitive_body="sphere"/>
+		<general_primitive_contact general_body="body2" primitive_body="sphere"/>
+		<general_primitive_contact general_body="body3" primitive_body="sphere"/>
+		<general_primitive_contact general_body="body4" primitive_body="sphere"/>
+		<general_primitive_contact general_body="body5" primitive_body="sphere"/>
+		<general_primitive_contact general_body="body6" primitive_body="sphere"/>
+		<general_primitive_contact general_body="body7" primitive_body="sphere"/>
+		<general_primitive_contact general_body="body8" primitive_body="sphere"/>
+		<general_primitive_contact general_body="body9" primitive_body="sphere"/>
+		<general_primitive_contact general_body="body10" primitive_body="sphere"/>
+		<general_primitive_contact general_body="body11" primitive_body="sphere"/>
+		<general_primitive_contact general_body="body12" primitive_body="sphere"/>
+		<general_primitive_contact general_body="body13" primitive_body="sphere"/>
+		<general_primitive_contact general_body="body14" primitive_body="sphere"/>
+		<general_primitive_contact general_body="body15" primitive_body="sphere"/>
+		<general_primitive_contact general_body="body16" primitive_body="sphere"/>
+		<general_primitive_contact general_body="body17" primitive_body="sphere"/>
+	</contact>
+
+    <actuator>
+        <motor joint="joint1"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+        <motor joint="joint2"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+        <motor joint="joint3"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+        <motor joint="joint4"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+        <motor joint="joint5"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+        <motor joint="joint6"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+        <motor joint="joint7"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+        <motor joint="joint8"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+        <motor joint="joint9"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+        <motor joint="joint10"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+        <motor joint="joint11"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+        <motor joint="joint12"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+        <motor joint="joint13"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+        <motor joint="joint14"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+        <motor joint="joint15"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+        <motor joint="joint16"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+        <motor joint="joint17"  ctrl="force"  ctrl_range="-3e5 3e5"/>
+    </actuator>
+</redmax>
