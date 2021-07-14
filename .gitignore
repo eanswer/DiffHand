@@ -4,4 +4,4 @@ replay/
 build/
 dist/
 .vscode/
-
+*.idea/
