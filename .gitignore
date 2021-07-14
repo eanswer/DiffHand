@@ -3,4 +3,5 @@ results/
 replay/
 build/
 dist/
+.vscode/
 
