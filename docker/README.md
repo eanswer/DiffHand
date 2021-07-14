@@ -41,6 +41,12 @@ sudo systemctl daemon-reload
 sudo systemctl restart docker
 ```
 
+Run docker without sudo:
+```bash
+sudo groupadd docker
+sudo usermod -aG docker $USER
+newgrp docker
+```
 ## Build docker image
 
 ```bash
