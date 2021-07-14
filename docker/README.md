@@ -74,3 +74,9 @@ cd DiffHand/examples
 python test_redmax.py
 ```
 
+If you see a simulation rendering with a two-link pendulum as below, you have successfully installed the code base.
+
+<p align="center">
+    <img src="../demos/test_redmax.gif" alt="test_redmax" width="500" />
+</p>
+

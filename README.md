@@ -14,6 +14,10 @@ The framework itself is general and not limited to manipulator robots, we select
 
 ## Installation
 
+We provides two methods for installation of the code. **Install on local machine** and **Install by Docker**.
+
+#### Option 1: Install on Local Machine
+
 **Operating System**: tested on Ubuntu 16.04 and Ubuntu 18.04
 
 1. Clone the project from github: `git clone https://github.com/eanswer/DiffHand.git --recursive `.
@@ -25,6 +29,7 @@ The framework itself is general and not limited to manipulator robots, we select
    ```
    cd DiffHand
    conda env create -f environment.yml
+   conda activate diffhand
    cd core
    python setup.py install
    ```
@@ -41,6 +46,12 @@ The framework itself is general and not limited to manipulator robots, we select
    <p align="center">
        <img src="demos/test_redmax.gif" alt="test_redmax" width="500" />
    </p>
+
+
+
+#### Option 2: Install by Docker
+
+We provide a docker installation in the `docker` folder.  Follow the readme instruction in `docker` folder to complete the installation.
 
 
 
