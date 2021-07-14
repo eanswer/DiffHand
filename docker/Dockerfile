@@ -1,5 +1,5 @@
-FROM nvidia/cudagl:11.3.0-devel-ubuntu18.04
-#FROM nvidia/cudagl:10.2-devel-ubuntu18.04
+# FROM nvidia/cudagl:11.3.0-devel-ubuntu18.04
+FROM nvidia/cudagl:10.2-devel-ubuntu18.04
 
 # setup timezone
 RUN echo 'America/New_York' > /etc/timezone && \

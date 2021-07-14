@@ -41,7 +41,7 @@ sudo systemctl daemon-reload
 sudo systemctl restart docker
 ```
 
-Run docker without sudo:
+Enable root permission to the user so that we can run docker without sudo:
 ```bash
 sudo groupadd docker
 sudo usermod -aG docker $USER
@@ -55,11 +55,22 @@ python docker_build.py
 
 ## Run docker image
 
+Launch docker:
+
 ```bash
 docker run -it --gpus all -e NVIDIA_DRIVER_CAPABILITIES=all -e NVIDIA_VISIBLE_DEVICES=all --net=host --env="DISPLAY" diffhand:latest
 ```
 
 To enable GUI visualization, run the following command in a new terminal (you only need to run this once):
-```bash
-./visualize_access.sh
+
 ```
+sudo ./visualize_access.sh
+```
+
+Run test example:
+
+```
+cd DiffHand/examples
+python test_redmax.py
+```
+

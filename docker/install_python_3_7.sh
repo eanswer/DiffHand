@@ -9,6 +9,3 @@ update-alternatives --install /usr/bin/python python /usr/bin/python3.7 10
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 python get-pip.py
 rm get-pip.py
-pip install numpy pyyaml scipy ipython cython matplotlib gym \
-    opencv-python tqdm tensorboard gitpython pillow cloudpickle \
-    colorlog gputil
