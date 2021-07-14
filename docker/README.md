@@ -50,7 +50,7 @@ python docker_build.py
 ## Run docker image
 
 ```bash
-docker run -it --gpus all -e NVIDIA_DRIVER_CAPABILITIES=all -e NVIDIA_VISIBLE_DEVICES=all --net=host diffhand:latest
+docker run -it --gpus all -e NVIDIA_DRIVER_CAPABILITIES=all -e NVIDIA_VISIBLE_DEVICES=all --net=host --env="DISPLAY" diffhand:latest
 ```
 
 To enable GUI visualization, run the following command in a new terminal (you only need to run this once):

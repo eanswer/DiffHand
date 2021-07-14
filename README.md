@@ -103,7 +103,7 @@ We provide several examples to test the forward simulation and its differentiabi
 - `examples/test_finger_flick_optimize.py` provides an example for using the backward gradients of the simulation. In this example, we use gradient-based optimization to optimize the control sequence of a pendulum finger model to flick a cube to a target location. run it by:
 
   ```
-  python test_finger_flick_optimzie.py
+  python test_finger_flick_optimize.py
   ```
 
   The initial control sequence is shown first and you can press [Esc] to close the rendering and start the optimization. After successful optimization, you will see a rendering as below:

@@ -1,25 +1,31 @@
 import nevergrad as ng
 import numpy as np
 
-def optimize_params(optim_name, loss_func, num_params, init_values, max_iters, num_workers=1, bounds=None, popsize=None):
+
+def optimize_params(optim_name, loss_func, num_params, init_values, max_iters, num_workers=1, bounds=None,
+                    popsize=None):
     parametrization = ng.p.Array(init=init_values)
 
     if bounds is not None:
         parametrization.set_bounds(lower=bounds[:, 0], upper=bounds[:, 1])
-    if 'CMA' in optim_name:
-        optim_func = getattr(ng.optimizers, '_CMA')
-    else:
-        optim_func = getattr(ng.optimizers, optim_name)
     optim_dict = dict(
         parametrization=parametrization, budget=max_iters, num_workers=num_workers,
     )
+    if 'CMA' in optim_name:
+        cma_config = dict()
+        optim_func = getattr(ng.optimizers, '_CMA')
+    else:
+        optim_func = getattr(ng.optimizers, optim_name)
+
     if 'CMA' in optim_name and popsize is not None:
         print(f'Setting popsize to be:{popsize}')
-        optim_dict['popsize'] = popsize
+        cma_config['popsize'] = popsize
     if optim_name == 'FCMA':
-        optim_dict['fcmaes'] = True
+        cma_config['fcmaes'] = True
     elif optim_name == 'DiagonalCMA':
-        optim_dict['diagonal'] = True
+        cma_config['diagonal'] = True
+    if 'CMA' in optim_name:
+        optim_dict['config'] = ng.optimizers.ParametrizedCMA(**cma_config)
     optimizer = optim_func(**optim_dict)
 
     losses = []
