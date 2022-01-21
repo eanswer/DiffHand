@@ -237,22 +237,20 @@ void JointSphericalExp::inner_update() {
 bool JointSphericalExp::reparam() {
     // if q.norm is close to 2pi, then reparameterize as q = (1 - 2pi / q.norm) * q
     dtype qnorm = _q.norm();
-    if (qnorm > (dtype)1.5 * constants::pi) {
-        while (qnorm > (dtype)1.5 * constants::pi) {
+    if (qnorm > (dtype)1.1 * constants::pi) {
+        Matrix3 S0 = _S_j.topLeftCorner(3, 3);
+
+        while (qnorm > (dtype)1.1 * constants::pi) {
             _q = ((dtype)1.0 - 2.0 * constants::pi / qnorm) * _q;
             qnorm = _q.norm();
+            std::cerr << "reparam" << std::endl;
         }
-        Matrix3 S0 = _S_j.topLeftCorner(3, 3);
-        std::cerr << "phi0 = " << (S0 * _qdot).transpose() << std::endl;
-        // std::cerr << "S = " << _S_j << std::endl;
-        std::cerr << "Q0 = " << _Q << std::endl;
+        
         inner_update();
+
         Matrix3 S1 = _S_j.topLeftCorner(3, 3);
-        _qdot = S1.inverse() * S0 * _qdot;
-        std::cerr << "phi1 = " << (S1 * _qdot).transpose() << std::endl;
-        // std::cerr << "S = " << _S_j << std::endl;
-        std::cerr << "Q1 = " << _Q << std::endl;
-        inner_update();
+        _qdot = S1.inverse() * S0 * _qdot; // just need to compute new q and new qdot, the remaining update will be performed by a global update() function
+
         return true;
     } else {
         return false;

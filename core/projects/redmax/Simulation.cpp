@@ -707,7 +707,7 @@ void Simulation::forward(int num_steps, bool verbose, bool test_derivatives) {
         }
 
         set_state(q_next, qdot_next);
-        reparam();
+        // reparam();
         q_next = get_q();
         qdot_next = get_qdot();
         

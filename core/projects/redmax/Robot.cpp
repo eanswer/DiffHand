@@ -160,11 +160,14 @@ bool Robot::check_valid() {
 }
 
 void Robot::reparam() {
+    bool reparam_flag = false;
     for (auto joint : _joints) {
-        joint->reparam();
+        reparam_flag |= joint->reparam();
     }
     
-    update();
+    if (reparam_flag) {
+        update();
+    }
 }
 
 void Robot::set_q(const VectorX q) {
@@ -603,7 +606,7 @@ void Robot::computeJointJacobianWithDerivative(MatrixX& J, MatrixX& Jdot, Jacobi
     // compute joint jacobian J_mr: phi = J_mr * qdot
     // compute its time derivative Jdot
     // compute their derivative w.r.t q
-    // follow pseudo-code Slgorithm (11)
+    // follow pseudo-code Algorithm (11)
     J = MatrixX::Zero(_ndof_m, _ndof_r);
     Jdot = MatrixX::Zero(_ndof_m, _ndof_r);
     dJ_dq = JacobianMatrixVector(_ndof_m, _ndof_r, _ndof_r);

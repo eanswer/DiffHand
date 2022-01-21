@@ -103,7 +103,9 @@ void JointFree3DExp::update(bool design_gradient) {
 }
 
 bool JointFree3DExp::reparam() {
-    return _joint_spherical_exp->reparam();
+    bool flag = _joint_spherical_exp->reparam();
+    _q.tail(3) = _joint_spherical_exp->_q;
+    _qdot.tail(3) = _joint_spherical_exp->_qdot;
+    return flag;
 }
-
 }
