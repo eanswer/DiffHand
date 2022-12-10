@@ -21,29 +21,36 @@ cage parameters:
 import os
 import sys
 
-example_base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+example_base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../'))
 sys.path.append(example_base_dir)
+DiffHand_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
+sys.path.append(DiffHand_dir)
+working_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(working_dir)
 
+import torch
 import numpy as np
 from copy import deepcopy
 import pyvista as pv
 
+torch.set_default_dtype(torch.double)
+
 asset_folder = os.path.abspath(os.path.join(example_base_dir, '..', 'assets/finger'))
 
 def flatten_E(E):
-    flat_E = np.zeros(12)
-    flat_E[0:9] = E[0:3, 0:3].flat
+    flat_E = torch.zeros(12)
+    flat_E[0:9] = E[0:3, 0:3].flatten()
     flat_E[9:12] = E[0:3, 3]
     return flat_E
 
 def compose_E(flat_E):
-    E = np.eye(4)
+    E = torch.eye(4)
     E[0:3, 0:3] = flat_E[0:9].reshape(3, 3)
     E[0:3, 3] = flat_E[9:12]
     return E
 
 def Einv(E):
-    E_inv = np.eye(4)
+    E_inv = torch.eye(4)
     E_inv[0:3, 0:3] = E[0:3, 0:3].T
     E_inv[0:3, 3] = -E[0:3, 0:3].T @ E[0:3, 3]
     return E_inv
@@ -94,14 +101,14 @@ class Cage:
 
         # load mesh
         mesh_pv = pv.read(mesh_path)
-        V = np.copy(mesh_pv.points.T)
-        F = np.copy(mesh_pv.faces.reshape(-1, 4).T[1:4, :])
+        V = torch.tensor(mesh_pv.points.T)
+        F = torch.tensor(mesh_pv.faces.reshape(-1, 4).T[1:4, :])
         mesh = TriMesh(V, F)
 
         # load cage
         with open(cage_path, 'r') as fp:
             n = int(fp.readline())
-            handles = np.zeros((3, n))
+            handles = torch.zeros((3, n))
             for i in range(n):
                 data = fp.readline().split()
                 x, y, z = float(data[0]), float(data[1]), float(data[2])
@@ -110,6 +117,7 @@ class Cage:
 
         # load weight
         lbs_mat = np.load(open(weight_path, 'rb'))
+        lbs_mat = torch.tensor(lbs_mat)
 
         # load contact id
         with open(contact_path, 'rb') as fp:
@@ -120,15 +128,15 @@ class Cage:
         return mesh, handles, lbs_mat, contact_id, contact_lbs_mat
     
     def get_handle_positions(self):
-        handle_positions = np.zeros((3, 14))
-        handle_positions[:, 0] = np.array([0., -self.side_parent.width / 2., -self.side_parent.height / 2.])
-        handle_positions[:, 1] = np.array([0., -self.side_parent.width / 2., self.side_parent.height / 2.])
-        handle_positions[:, 2] = np.array([0., self.side_parent.width / 2., -self.side_parent.height / 2.])
-        handle_positions[:, 3] = np.array([0., self.side_parent.width / 2., self.side_parent.height / 2.])
-        handle_positions[:, 4] = np.array([self.length, -self.side_child.width / 2., -self.side_child.height / 2.])
-        handle_positions[:, 5] = np.array([self.length, -self.side_child.width / 2., self.side_child.height / 2.])
-        handle_positions[:, 6] = np.array([self.length, self.side_child.width / 2., -self.side_child.height / 2.])
-        handle_positions[:, 7] = np.array([self.length, self.side_child.width / 2., self.side_child.height / 2.])
+        handle_positions = torch.zeros((3, 14))
+        handle_positions[0, 0], handle_positions[1, 0], handle_positions[2, 0] = 0, -self.side_parent.width / 2., -self.side_parent.height / 2.
+        handle_positions[0, 1], handle_positions[1, 1], handle_positions[2, 1] = 0, -self.side_parent.width / 2., self.side_parent.height / 2.
+        handle_positions[0, 2], handle_positions[1, 2], handle_positions[2, 2] = 0, self.side_parent.width / 2., -self.side_parent.height / 2.
+        handle_positions[0, 3], handle_positions[1, 3], handle_positions[2, 3] = 0, self.side_parent.width / 2., self.side_parent.height / 2.
+        handle_positions[0, 4], handle_positions[1, 4], handle_positions[2, 4] = self.length, -self.side_child.width / 2., -self.side_child.height / 2.
+        handle_positions[0, 5], handle_positions[1, 5], handle_positions[2, 5] = self.length, -self.side_child.width / 2., self.side_child.height / 2.
+        handle_positions[0, 6], handle_positions[1, 6], handle_positions[2, 6] = self.length, self.side_child.width / 2., -self.side_child.height / 2.
+        handle_positions[0, 7], handle_positions[1, 7], handle_positions[2, 7] = self.length, self.side_child.width / 2., self.side_child.height / 2.
         handle_positions[:, 8] = (handle_positions[:, 1] + handle_positions[:, 5] + handle_positions[:, 7] + handle_positions[:, 3]) / 4.
         handle_positions[:, 9] = (handle_positions[:, 5] + handle_positions[:, 4] + handle_positions[:, 6] + handle_positions[:, 7]) / 4.
         handle_positions[:, 10] = (handle_positions[:, 3] + handle_positions[:, 7] + handle_positions[:, 6] + handle_positions[:, 2]) / 4.
@@ -146,7 +154,7 @@ class Cage:
 
         handle_positions = self.get_handle_positions()
 
-        handle_transform = np.zeros((3, 4 * n_handles))
+        handle_transform = torch.zeros((3, 4 * n_handles))
         for i in range(n_handles):
             for j in range(3):
                 handle_transform[j, i * 4 + j] = 1.
@@ -164,6 +172,31 @@ class Cage:
 
     def transform_mesh_child(self):
         return self.transform_mesh(self.mesh_child, self.handles_child, self.lbs_mat_child, self.joint_E_i_mesh())
+
+    def transform_contacts(self, mesh, handle_old_positions, contact_lbs_mat, E_i_mesh):
+        n_handles = handle_old_positions.shape[1]
+        n_verts = mesh.V.shape[1]
+
+        handle_positions = self.get_handle_positions()
+
+        handle_transform = torch.zeros((3, 4 * n_handles))
+        for i in range(n_handles):
+            for j in range(3):
+                handle_transform[j, i * 4 + j] = 1.
+            handle_transform[0:3, i * 4 + 3] = handle_positions[:, i] - handle_old_positions[:, i]
+
+        contact_points = E_i_mesh[0:3, 0:3] @ handle_transform @ contact_lbs_mat + E_i_mesh[0:3, 3:4]
+
+        return contact_points.T
+
+    def transform_contacts_whole(self):
+        return self.transform_contacts(self.mesh, self.handles, self.contact_lbs_mat, self.E_i_mesh())
+
+    def transform_contacts_parent(self):
+        return self.transform_contacts(self.mesh_parent, self.handles_parent, self.contact_lbs_mat_parent, self.E_i_mesh())
+
+    def transform_contacts_child(self):
+        return self.transform_contacts(self.mesh_child, self.handles_child, self.contact_lbs_mat_child, self.joint_E_i_mesh())
         
     def scale_child_z(self, scale):
         self.side_child.height *= scale
@@ -185,12 +218,12 @@ class Cage:
         self.length *= scale
     
     def E_jc(self):
-        E = np.eye(4)
+        E = torch.eye(4)
         E[0, 3] = self.length
         return E
     
     def E_ji(self):
-        E = np.eye(4)
+        E = torch.eye(4)
         E[0, 3] = self.length / 2.
         return E
     
@@ -199,18 +232,20 @@ class Cage:
         return E
 
     def joint_E_pj(self):
-        E = np.eye(4)
+        E = torch.eye(4)
         E[0:3, 3] = self.joint_axis_origin
         return E
 
     def joint_E_jc(self):
-        E = np.eye(4)
-        E[0:3, 3] = np.array([self.length, 0., 0.]) - self.joint_axis_origin
+        E = torch.eye(4)
+        E[0, 3] = self.length
+        E[0:3, 3] -= self.joint_axis_origin
         return E
 
     def joint_E_ji(self):
-        E = np.eye(4)
-        E[0:3, 3] = np.array([self.length / 2., 0., 0.]) - self.joint_axis_origin
+        E = torch.eye(4)
+        E[0, 3] = self.length / 2.
+        E[0:3, 3] -= self.joint_axis_origin
         return E
 
     def joint_E_i_mesh(self):
@@ -219,8 +254,9 @@ class Cage:
 
     def endeffector_E_pj(self):
         h = (self.side_parent.height + self.side_child.height) / 2.
-        E = np.eye(4)
-        E[0:3, 3] = np.array([self.length / 2., 0., h / 2.])
+        E = torch.eye(4)
+        E[0, 3] = self.length / 2.
+        E[2, 3] = h / 2.
         return E
 
     def inertia(self):
@@ -228,16 +264,23 @@ class Cage:
         w = (self.side_parent.width + self.side_child.width) / 2.
         length = self.length
         mass = h * w * length
-        I = np.zeros(4)
+        I = torch.zeros(4)
         I[0] = mass
         I[1] = mass / 12. * (w * w + h * h)
         I[2] = mass / 12. * (h * h + length * length)
         I[3] = mass / 12. * (w * w + length * length)
         return I
 
+    def contact_scale(self):
+        old_S = self.side_parent_init.width * self.side_parent_init.height + self.side_child_init.width * self.side_child_init.height \
+                + (self.side_parent_init.width + self.side_parent_init.height + self.side_child_init.width + self.side_child_init.height) * self.length_init
+        new_S = self.side_parent.width * self.side_parent.height + self.side_child.width * self.side_child.height \
+                + (self.side_parent.width + self.side_parent.height + self.side_child.width + self.side_child.height) * self.length
+        return new_S / old_S
+        
 palm_cage = Cage(1.6, 3.24, 1.6, 3.24, 0.7, False, 'palm')
-knuckle_cage = Cage(1.6, 3.24, 2.6, 2.6, 2.75, True, 'knuckle_parent', 'knuckle_child', joint_axis_origin = np.array([1.15, 0., 0.]))
-joint_cage = Cage(2.6, 2.6, 2.6, 2.6, 2.06, True, 'joint_parent', 'joint_child', joint_axis_origin = np.array([1.08, 0., 0.]))
+knuckle_cage = Cage(1.6, 3.24, 2.6, 2.6, 2.75, True, 'knuckle_parent', 'knuckle_child', joint_axis_origin = torch.tensor([1.15, 0., 0.]))
+joint_cage = Cage(2.6, 2.6, 2.6, 2.6, 2.06, True, 'joint_parent', 'joint_child', joint_axis_origin = torch.tensor([1.08, 0., 0.]))
 phalanx_cage = Cage(2.6, 2.6, 2.6, 2.6, 2.34, False, 'phalanx')
 tip_cage = Cage(2.6, 2.6, 2.6, 2.6, 2.21, False, 'tip')
 
@@ -263,8 +306,6 @@ class Design:
         self.sub_ndof_p3 = []
         for i in range(len(self.cages)):
             symbol = self.structure[i]
-            if i <= 4:
-                continue
             if symbol == 'j' or symbol == 'k':
                 self.ndof_p3 += self.cages[i].contact_id_parent.shape[0] * 3
                 self.sub_ndof_p3.append(self.cages[i].contact_id_parent.shape[0] * 3)
@@ -282,18 +323,18 @@ class Design:
         self.ndof_p2 = self.n_link * 12
 
     def parameterize(self, cage_parameters, generate_mesh = False):
-        assert(len(cage_parameters) == 9)
-
         for i in range(len(self.cages)):
             self.cages[i].reset()
 
-        n_link = self.n_link                   
-        ndof_p1 = (n_link + 1) * 12   
+        n_link = self.n_link
+        ndof_p1 = (n_link + 1) * 12
         ndof_p2 = n_link * 12
+        ndof_p3 = self.ndof_p3
         ndof_p4 = n_link * 4
-        ndof_p = ndof_p1 + ndof_p2 + ndof_p4
+        ndof_p6 = self.ndof_p6
+        ndof_p = ndof_p1 + ndof_p2 + ndof_p3 + ndof_p4 + ndof_p6
 
-        design_params = np.zeros(ndof_p)
+        design_params = torch.zeros(ndof_p)
 
         # apply cage parameters into cages
         parameter_idx = 0
@@ -322,7 +363,7 @@ class Design:
             if (symbol == 'p'):
                 self.cages[i].scale_length(cage_parameters[parameter_idx])
                 parameter_idx += 1
-
+                
         # convert from cages to design params
         # design params 1
         idx = 0
@@ -353,7 +394,9 @@ class Design:
                 design_params[idx * 12:(idx + 1) * 12] = flatten_E(self.cages[i].endeffector_E_pj())
                 idx += 1
             elif (symbol == 'palm'):
-                E = np.eye(4)
+                E = torch.eye(4)
+                E[1, 1] = -1
+                E[2, 2] = -1
                 design_params[idx * 12:(idx + 1) * 12] = flatten_E(E)
                 idx += 1
 
@@ -372,20 +415,48 @@ class Design:
                 design_params[ndof_p1 + idx * 12:ndof_p1 + (idx + 1) * 12] = flatten_E(self.cages[i].joint_E_ji())
                 idx += 1
         
+        # design param 3
+        param_id = ndof_p1 + ndof_p2
+        for i in range(len(self.cages)):
+            symbol = self.structure[i]
+            if (symbol == 'p' or symbol == 't' or symbol == 'palm'):
+                design_params[param_id:param_id + self.cages[i].contact_id.shape[0] * 3] = self.cages[i].transform_contacts_whole().flatten()
+                param_id += self.cages[i].contact_id.shape[0] * 3
+            elif (symbol == 'j' or symbol == 'k'):
+                # joint parent part
+                design_params[param_id:param_id + self.cages[i].contact_id_parent.shape[0] * 3] = self.cages[i].transform_contacts_parent().flatten()
+                param_id += self.cages[i].contact_id_parent.shape[0] * 3
+                # joint child part
+                design_params[param_id:param_id + self.cages[i].contact_id_child.shape[0] * 3] = self.cages[i].transform_contacts_child().flatten()
+                param_id += self.cages[i].contact_id_child.shape[0] * 3
+
         # design param 4
         idx = 0
         for i in range(len(self.cages)):
             symbol = self.structure[i]
             if (symbol == 'p' or symbol == 't' or symbol == 'palm'):
-                design_params[ndof_p1 + ndof_p2 + idx * 4:ndof_p1 + ndof_p2 + (idx + 1) * 4] = self.cages[i].inertia()
+                design_params[ndof_p1 + ndof_p2 + ndof_p3 + idx * 4:ndof_p1 + ndof_p2 + ndof_p3 + (idx + 1) * 4] = self.cages[i].inertia()
                 idx += 1
             elif (symbol == 'j' or symbol == 'k'):
                 # joint parent part
-                design_params[ndof_p1 + ndof_p2 + idx * 4:ndof_p1 + ndof_p2 + (idx + 1) * 4] = self.cages[i].inertia()
+                design_params[ndof_p1 + ndof_p2 + ndof_p3 + idx * 4:ndof_p1 + ndof_p2 + ndof_p3 + (idx + 1) * 4] = self.cages[i].inertia()
                 idx += 1
                 # joint child part
-                design_params[ndof_p1 + ndof_p2 + idx * 4:ndof_p1 + ndof_p2 + (idx + 1) * 4] = self.cages[i].inertia()
+                design_params[ndof_p1 + ndof_p2 + ndof_p3 + idx * 4:ndof_p1 + ndof_p2 + ndof_p3 + (idx + 1) * 4] = self.cages[i].inertia()
                 idx += 1
+
+        # design param 6
+        param_id = ndof_p1 + ndof_p2 + ndof_p3 + ndof_p4
+        for i in range(len(self.cages)):
+            symbol = self.structure[i]
+            if (symbol == 'p' or symbol == 't' or symbol == 'palm'):
+                design_params[param_id] = self.cages[i].contact_scale()
+                param_id += 1
+            elif (symbol == 'j' or symbol == 'k'):
+                design_params[param_id] = self.cages[i].contact_scale()
+                param_id += 1
+                design_params[param_id] = self.cages[i].contact_scale()
+                param_id += 1
 
         if generate_mesh:
             meshes = []

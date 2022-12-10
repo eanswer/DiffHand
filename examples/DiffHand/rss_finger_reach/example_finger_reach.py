@@ -5,21 +5,26 @@ co-optimization for finger reach task
 import os
 import sys
 
-example_base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+example_base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../'))
 sys.path.append(example_base_dir)
+DiffHand_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
+sys.path.append(DiffHand_dir)
+working_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(working_dir)
 
 from parameterization_torch import Design as Design
 from parameterization import Design as Design_np
 from parameterization import compose_E
 
-from renderer import SimRenderer
+from utils.renderer import SimRenderer
+from utils.common import *
+from common import *
 import numpy as np
 import scipy.optimize
 import redmax_py as redmax
 import os
 import argparse
 import time
-from common import *
 import torch
 import matplotlib.pyplot as plt
 

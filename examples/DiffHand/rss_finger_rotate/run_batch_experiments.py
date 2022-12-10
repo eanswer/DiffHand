@@ -1,7 +1,5 @@
-import os, sys, signal
-import random
-import numpy as np
-from multiprocessing import Process, Queue, current_process, freeze_support
+import os
+from multiprocessing import Process, Queue
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -23,13 +21,13 @@ for i in range(args.num_seeds):
     seed = seeds[i]
     save_dir = os.path.join(args.save_dir, args.method, str(seed))
     if args.method == 'ours':
-        cmd = 'python example_finger_flip.py '\
+        cmd = 'python example_finger_rotate.py '\
             '--seed {} '\
             '--save-dir {} '\
             '--visualize False'\
                 .format(seed, save_dir)
     elif args.method == 'control-only':
-        cmd = 'python example_finger_flip.py '\
+        cmd = 'python example_finger_rotate.py '\
             '--seed {} '\
             '--save-dir {} '\
             '--no-design-optim '\
@@ -41,7 +39,7 @@ for i in range(args.num_seeds):
             '--save-dir {} '\
             '--optim CMA '\
             '--max-iters 10000 '\
-            '--popsize 20 '\
+            '--popsize 10 '\
             '--visualize False'\
                 .format(seed, save_dir)
     elif args.method == 'OnePlusOne':

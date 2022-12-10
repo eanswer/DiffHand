@@ -1,52 +1,53 @@
 '''
-ES baselines for finger flip task
+ES baselines for finger rotate task
 '''
 import os
 import sys
 
-import nevergrad as ng
-
-example_base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+example_base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../'))
 sys.path.append(example_base_dir)
+DiffHand_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
+sys.path.append(DiffHand_dir)
+working_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(working_dir)
+
 from parameterization import Design as Design_np
-import os
-import torch
-from renderer import SimRenderer
+from utils.renderer import SimRenderer
+from utils.common import *
+from common import *
 import numpy as np
 import redmax_py as redmax
 import argparse
-from common import *
-from pathlib import Path
 from grad_free_util import optimize_params
 import argparse
+import matplotlib.pyplot as plt
 
 '''compute the objectives by forward pass'''
 def forward(params):
     action = params[:ndof_u * num_ctrl_steps]
     u = np.tanh(action)
-    # u = np.clip(action, -1., 1.)
 
     if optimize_design_flag:
         cage_params = params[-ndof_cage:]
         design_params = design_np.parameterize(cage_params)
         sim.set_design_params(design_params)
-    
+        
     sim.reset()
 
     # objectives coefficients
-    coef_u = 5.
-    coef_touch = 1.
-    coef_flip = 50.
+    coef_u = 5
+    coef_touch = 0.1
+    coef_rotate = 1000
 
     f_u = 0.
     f_touch = 0.
-    f_flip = 0.
+    f_rotate = 0.
 
     f = 0.
 
     for i in range(num_ctrl_steps):
         sim.set_u(u[i * ndof_u:(i + 1) * ndof_u])
-        sim.forward(sub_steps, verbose = False)
+        sim.forward(sub_steps, verbose = args.verbose)
         
         variables = sim.get_variables()
         q = sim.get_q()
@@ -54,17 +55,17 @@ def forward(params):
         # compute objective f
         f_u_i = np.sum(u[i * ndof_u:(i + 1) * ndof_u] ** 2)
         f_touch_i = 0.
-        if i < num_ctrl_steps // 2:
-            f_touch_i += np.sum((variables[0:3] - variables[3:6]) ** 2) # MSE                     
-        f_flip_i = 0.
-        f_flip_i += (q[-1] - np.pi / 2.) ** 2
+        f_touch_i += np.sum((variables[0:3] - variables[3:6]) ** 2) # MSE    
+        f_rotate_i = 0.        
+        if i == num_ctrl_steps - 1:
+            f_rotate_i = (q[-1] - rotate_angle) ** 2
 
         f_u += f_u_i
         f_touch += f_touch_i
-        f_flip += f_flip_i
-        f += coef_u * f_u_i + coef_touch * f_touch_i + coef_flip * f_flip_i
+        f_rotate += f_rotate_i
+        f += coef_u * f_u_i + coef_touch * f_touch_i + coef_rotate * f_rotate_i
 
-    return f, {'f_u': f_u, 'f_touch': f_touch, 'f_flip': f_flip}
+    return f, {'f_u': f_u, 'f_touch': f_touch, 'f_rotate': f_rotate}
 
 
 def env_loss(params):
@@ -87,11 +88,11 @@ def callback_func(params, render=False, record=False, record_path=None, log=True
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('')
-    parser.add_argument("--model", type=str, default='rss_finger_flip')
+    parser.add_argument("--model", type=str, default='rss_finger_rotate')
     parser.add_argument('--record', action='store_true')
     parser.add_argument('--save-dir', type=str, default='data')
     parser.add_argument('--num_workers', type=int, default=1)
-    parser.add_argument('--record-file-name', type=str, default='rss_finger_flip_grad_free')
+    parser.add_argument('--record-file-name', type=str, default='rss_finger_rotate_grad_free')
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--optim', '-o', choices=['TwoPointsDE', 'NGOpt',
                                                   'OnePlusOne', 'CMA', 'TBPSA',
@@ -128,7 +129,7 @@ if __name__ == '__main__':
         sim.print_ctrl_info()
         sim.print_design_params_info()
 
-    num_steps = 150
+    num_steps = 200
 
     ndof_u = sim.ndof_u
     ndof_r = sim.ndof_r
@@ -140,6 +141,9 @@ if __name__ == '__main__':
 
     design_np = Design_np()
     
+    # set task
+    rotate_angle = -np.pi / 2.
+
     # init design params
     cage_params = np.ones(9)
     ndof_cage = len(cage_params)
@@ -181,7 +185,7 @@ if __name__ == '__main__':
             bounds.append((-1., 1.))
         if optimize_design_flag:
             for i in range(ndof_cage):
-                bounds.append((0.5, 3.))
+                bounds.append((0.5, 2.))
         bounds = np.array(bounds)
         params, losses = optimize_params(optim_name=args.optim,
                                          loss_func=env_loss,

@@ -21,8 +21,12 @@ cage parameters:
 import os
 import sys
 
-example_base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+example_base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../'))
 sys.path.append(example_base_dir)
+DiffHand_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
+sys.path.append(DiffHand_dir)
+working_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(working_dir)
 
 import numpy as np
 from copy import deepcopy

@@ -1,24 +1,29 @@
 '''
 description:
-co-optimization for finger rotate rubik's cube task
+co-optimization for finger reach task
 '''
 import os
 import sys
 
-example_base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+example_base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../'))
 sys.path.append(example_base_dir)
+DiffHand_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
+sys.path.append(DiffHand_dir)
+working_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(working_dir)
 
 from parameterization_torch import Design as Design
 from parameterization import Design as Design_np
-from parameterization import compose_E
 
-from renderer import SimRenderer
+from utils.renderer import SimRenderer
+from utils.common import *
+from common import *
 import numpy as np
 import scipy.optimize
 import redmax_py as redmax
+import os
 import argparse
 import time
-from common import *
 import torch
 import matplotlib.pyplot as plt
 
@@ -26,9 +31,9 @@ torch.set_default_dtype(torch.double)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('')
-    parser.add_argument("--model", type = str, default = 'rss_finger_rotate')
+    parser.add_argument("--model", type = str, default = 'rss_finger_flip')
     parser.add_argument('--record', action = 'store_true')
-    parser.add_argument('--record-file-name', type = str, default = 'rss_finger_rotate')
+    parser.add_argument('--record-file-name', type = str, default = 'rss_finger_flip')
     parser.add_argument('--seed', type=int, default = 0)
     parser.add_argument('--save-dir', type=str, default = './results/tmp/')
     parser.add_argument('--no-design-optim', action='store_true', help = 'whether control-only')
@@ -58,7 +63,7 @@ if __name__ == '__main__':
         sim.print_ctrl_info()
         sim.print_design_params_info()
 
-    num_steps = 200
+    num_steps = 150
 
     ndof_u = sim.ndof_u
     ndof_r = sim.ndof_r
@@ -67,9 +72,6 @@ if __name__ == '__main__':
 
     # set up camera
     sim.viewer_options.camera_pos = np.array([2.5, -4, 1.8])
-
-    # set task
-    rotate_angle = -np.pi / 2.
 
     # init design params
     design = Design()
@@ -105,7 +107,6 @@ if __name__ == '__main__':
         params = np.zeros(ndof_u * num_ctrl_steps + ndof_cage)
         params[0:ndof_u * num_ctrl_steps] = action
         params[-ndof_cage:] = cage_params
-    n_params = len(params)
 
     # init optimization history
     f_log = []
@@ -113,7 +114,7 @@ if __name__ == '__main__':
     num_sim = 0
 
     '''compute the objectives by forward pass'''
-    def forward(params, backward_flag = False, test_derivatives = False):
+    def forward(params, backward_flag = False):
         global num_sim
         num_sim += 1
 
@@ -124,17 +125,17 @@ if __name__ == '__main__':
             cage_params = params[-ndof_cage:]
             design_params = design_np.parameterize(cage_params)
             sim.set_design_params(design_params)
-            
-        sim.reset(backward_flag = backward_flag, backward_design_params_flag = True)
+        
+        sim.reset(backward_flag = backward_flag, backward_design_params_flag = optimize_design_flag)
 
         # objectives coefficients
-        coef_u = 5
-        coef_touch = 0.1
-        coef_rotate = 1000
+        coef_u = 5.
+        coef_touch = 1.
+        coef_flip = 50.
 
         f_u = 0.
         f_touch = 0.
-        f_rotate = 0.
+        f_flip = 0.
 
         f = 0.
 
@@ -147,34 +148,35 @@ if __name__ == '__main__':
 
         for i in range(num_ctrl_steps):
             sim.set_u(u[i * ndof_u:(i + 1) * ndof_u])
-            sim.forward(sub_steps, verbose = args.verbose, test_derivatives = test_derivatives)
+            sim.forward(sub_steps, verbose = args.verbose)
             
             variables = sim.get_variables()
             q = sim.get_q()
-
+            
             # compute objective f
             f_u_i = np.sum(u[i * ndof_u:(i + 1) * ndof_u] ** 2)
             f_touch_i = 0.
-            f_touch_i += np.sum((variables[0:3] - variables[3:6]) ** 2) # MSE    
-            f_rotate_i = 0.        
-            if i == num_ctrl_steps - 1:
-                f_rotate_i = (q[-1] - rotate_angle) ** 2
+            if i < num_ctrl_steps // 2:
+                f_touch_i += np.sum((variables[0:3] - variables[3:6]) ** 2) # MSE                     
+            f_flip_i = 0.
+            f_flip_i += (q[-1] - np.pi / 2.) ** 2
 
             f_u += f_u_i
             f_touch += f_touch_i
-            f_rotate += f_rotate_i
-            f += coef_u * f_u_i + coef_touch * f_touch_i + coef_rotate * f_rotate_i
+            f_flip += f_flip_i
+            f += coef_u * f_u_i + coef_touch * f_touch_i + coef_flip * f_flip_i
 
             # backward info
             if backward_flag:
                 df_du[i * sub_steps * ndof_u:(i * sub_steps + 1) * ndof_u] += \
                     coef_u * 2. * u[i * ndof_u:(i + 1) * ndof_u]
-                df_dvar[((i + 1) * sub_steps - 1) * ndof_var:((i + 1) * sub_steps - 1) * ndof_var + 3] += \
-                    coef_touch * 2. * (variables[0:3] - variables[3:6])
-                df_dvar[((i + 1) * sub_steps - 1) * ndof_var + 3:((i + 1) * sub_steps) * ndof_var] += \
-                    -coef_touch * 2. * (variables[0:3] - variables[3:6])   # MSE
-                if i == num_ctrl_steps - 1:
-                    df_dq[((i + 1) * sub_steps) * ndof_r - 1] += coef_rotate * 2. * (q[-1] - rotate_angle)
+                if i < num_ctrl_steps // 2:
+                    df_dvar[((i + 1) * sub_steps - 1) * ndof_var:((i + 1) * sub_steps - 1) * ndof_var + 3] += \
+                        coef_touch * 2. * (variables[0:3] - variables[3:6])
+                    df_dvar[((i + 1) * sub_steps - 1) * ndof_var + 3:((i + 1) * sub_steps) * ndof_var] += \
+                        -coef_touch * 2. * (variables[0:3] - variables[3:6])   # MSE
+
+                df_dq[((i + 1) * sub_steps) * ndof_r - 1] += coef_flip * 2. * (q[-1] - np.pi / 2.)
         
         if backward_flag:
             sim.backward_info.set_flags(False, False, optimize_design_flag, True)
@@ -184,7 +186,7 @@ if __name__ == '__main__':
             if optimize_design_flag:
                 sim.backward_info.df_dp = df_dp
 
-        return f, {'f_u': f_u, 'f_touch': f_touch, 'f_rotate': f_rotate}
+        return f, {'f_u': f_u, 'f_touch': f_touch, 'f_flip': f_flip}
 
     '''compute loss and gradient'''
     def loss_and_grad(params):
@@ -216,11 +218,8 @@ if __name__ == '__main__':
         f, info = forward(params, backward_flag = False)
 
         global f_log, num_sim
-
         num_sim -= 1
-
-        print_info('iteration ', len(f_log), 'num_sim = ', num_sim, ', Objective = ', f, info)
-
+        print_info('iteration ', len(f_log), ', num_sim = ', num_sim, ', Objective = ', f, info)
         if log:
             f_log.append(np.array([num_sim, f]))
 
@@ -232,7 +231,7 @@ if __name__ == '__main__':
                 for i in range(len(meshes)):
                     Vs.append(meshes[i].V)
                 sim.set_rendering_mesh_vertices(Vs)
-                
+
             sim.viewer_options.speed = 0.2
             SimRenderer.replay(sim, record = record, record_path = record_path)
 
@@ -251,14 +250,16 @@ if __name__ == '__main__':
             bounds.append((-1., 1.))
         if optimize_design_flag:
             for i in range(ndof_cage):
-                bounds.append((0.5, 2.))
+                bounds.append((0.5, 3.))
 
+        ''' optimization by L-BFGS-B '''
         res = scipy.optimize.minimize(loss_and_grad, np.copy(params), method = "L-BFGS-B", jac = True, callback = callback_func, bounds = bounds, options={'maxiter': 100})
-        params = np.copy(res.x)
 
         t1 = time.time()
 
         print('time = ', t1 - t0)
+
+        params = np.copy(res.x)
 
         ''' save results '''
         with open(os.path.join(args.save_dir, 'params.npy'), 'wb') as fp:
@@ -271,7 +272,7 @@ if __name__ == '__main__':
             params = np.load(fp)
         with open(os.path.join(args.load_dir, 'logs.npy'), 'rb') as fp:
             f_log = np.load(fp)
-    
+
     if visualize:
         if optimize_design_flag:
             print('design params = ', params[-ndof_cage:])

@@ -1,45 +1,51 @@
 '''
-ES baselines for finger rotate task
+ES baselines for two finger assemble task
 '''
 import os
 import sys
 
-import nevergrad as ng
-
-example_base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+example_base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../'))
 sys.path.append(example_base_dir)
+DiffHand_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
+sys.path.append(DiffHand_dir)
+working_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(working_dir)
+
+from utils.renderer import SimRenderer
+from utils.common import *
 from parameterization import Design as Design_np
-import os
-import torch
-from renderer import SimRenderer
+from common import *
 import numpy as np
 import redmax_py as redmax
 import argparse
-from common import *
-from pathlib import Path
-from grad_free_util import optimize_params
+from DiffHand.grad_free_util import optimize_params
 import argparse
+import matplotlib.pyplot as plt
 
 '''compute the objectives by forward pass'''
 def forward(params):
     action = params[:ndof_u * num_ctrl_steps]
     u = np.tanh(action)
-
+    
     if optimize_design_flag:
         cage_params = params[-ndof_cage:]
         design_params = design_np.parameterize(cage_params)
         sim.set_design_params(design_params)
-        
+
     sim.reset()
 
     # objectives coefficients
-    coef_u = 5
-    coef_touch = 0.1
-    coef_rotate = 1000
-
+    coef_u = 0.
+    coef_box0_pos = 15
+    coef_task = 5
+    coef_touch = 1
+    coef_rot = 50.
+    
     f_u = 0.
+    f_box0_pos = 0.
+    f_task = 0.
     f_touch = 0.
-    f_rotate = 0.
+    f_rot = 0.
 
     f = 0.
 
@@ -50,21 +56,32 @@ def forward(params):
         variables = sim.get_variables()
         q = sim.get_q()
 
+        finger_pos0 = variables[0:3]
+        finger_pos1 = variables[3:6]
+        box0_center_pos = variables[6:9]
+        box0_touch_pos = variables[9:12]
+        box0_hole_pos = variables[12:15]
+        box1_center_pos = variables[15:18]
+        box1_touch_pos = variables[18:21]
+        box0_rot = q[-4]
+        box1_rot = q[-1]
+
         # compute objective f
         f_u_i = np.sum(u[i * ndof_u:(i + 1) * ndof_u] ** 2)
-        f_touch_i = 0.
-        f_touch_i += np.sum((variables[0:3] - variables[3:6]) ** 2) # MSE    
-        f_rotate_i = 0.        
-        if i == num_ctrl_steps - 1:
-            f_rotate_i = (q[-1] - rotate_angle) ** 2
+        f_touch_i = np.sum((finger_pos0 - box1_touch_pos) ** 2) + np.sum((finger_pos1 - box0_touch_pos) ** 2) - 6 ** 2 - 2.8 ** 2
+        f_box0_pos_i = np.sum(box0_center_pos[0:2] ** 2)
+        f_task_i = np.sum((box0_hole_pos - box1_center_pos) ** 2)
+        f_rot_i = (box0_rot - box1_rot) ** 2
 
-        f_u += f_u_i
-        f_touch += f_touch_i
-        f_rotate += f_rotate_i
-        f += coef_u * f_u_i + coef_touch * f_touch_i + coef_rotate * f_rotate_i
+        f_u += f_u_i * coef_u
+        f_touch += f_touch_i * coef_touch
+        f_box0_pos += f_box0_pos_i * coef_box0_pos
+        f_task += f_task_i * coef_task
+        f_rot += f_rot_i * coef_rot
 
-    return f, {'f_u': f_u, 'f_touch': f_touch, 'f_rotate': f_rotate}
+        f += coef_u * f_u_i + coef_touch * f_touch_i + coef_box0_pos * f_box0_pos_i + coef_rot * f_rot_i + coef_task * f_task_i
 
+    return f, {'f_touch': f_touch, 'f_box0_pos': f_box0_pos, 'f_task': f_task, 'f_rot': f_rot}
 
 def env_loss(params):
     loss, _ = forward(params)
@@ -86,11 +103,11 @@ def callback_func(params, render=False, record=False, record_path=None, log=True
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('')
-    parser.add_argument("--model", type=str, default='rss_finger_rotate')
+    parser.add_argument("--model", type=str, default='rss_two_finger_assemble')
     parser.add_argument('--record', action='store_true')
     parser.add_argument('--save-dir', type=str, default='data')
     parser.add_argument('--num_workers', type=int, default=1)
-    parser.add_argument('--record-file-name', type=str, default='rss_finger_rotate_grad_free')
+    parser.add_argument('--record-file-name', type=str, default='rss_two_finger_assemble_grad_free')
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--optim', '-o', choices=['TwoPointsDE', 'NGOpt',
                                                   'OnePlusOne', 'CMA', 'TBPSA',
@@ -99,9 +116,9 @@ if __name__ == '__main__':
     parser.add_argument('--no-design-optim', action='store_true', help = 'whether control-only')
     parser.add_argument('--max-iters', type=int, default=5000)
     parser.add_argument('--popsize', type=int, default=None)
-    parser.add_argument('--single_stage', action='store_true')
     parser.add_argument('--load-dir', type = str, default = None, help = 'load optimized parameters')
     parser.add_argument('--visualize', type=str, default='True', help = 'whether visualize the simulation')
+    parser.add_argument('--continuation', default = False, action = 'store_true')
     parser.add_argument('--verbose', default = False, action = 'store_true', help = 'verbose output')
 
     args = parser.parse_args()
@@ -127,7 +144,11 @@ if __name__ == '__main__':
         sim.print_ctrl_info()
         sim.print_design_params_info()
 
-    num_steps = 200
+    q_init = sim.get_q_init().copy()
+    q_init[-1] = np.pi / 6.
+    sim.set_q_init(q_init)
+
+    num_steps = 500
 
     ndof_u = sim.ndof_u
     ndof_r = sim.ndof_r
@@ -139,11 +160,8 @@ if __name__ == '__main__':
 
     design_np = Design_np()
     
-    # set task
-    rotate_angle = -np.pi / 2.
-
     # init design params
-    cage_params = np.ones(9)
+    cage_params = np.ones(17)
     ndof_cage = len(cage_params)
 
     design_params, meshes = design_np.parameterize(cage_params, True)
@@ -182,17 +200,53 @@ if __name__ == '__main__':
         for i in range(num_ctrl_steps * ndof_u):
             bounds.append((-1., 1.))
         if optimize_design_flag:
-            for i in range(ndof_cage):
-                bounds.append((0.5, 2.))
+            bounds.append((0.5, 6))
+            for i in range(ndof_cage - 1):
+                bounds.append((0.5, 3.))
         bounds = np.array(bounds)
-        params, losses = optimize_params(optim_name=args.optim,
-                                         loss_func=env_loss,
-                                         num_params=n_params,
-                                         init_values=params,
-                                         max_iters=args.max_iters,
-                                         num_workers=args.num_workers,
-                                         popsize=args.popsize,
-                                         bounds=bounds)
+        if not args.continuation:
+            params, losses = optimize_params(optim_name=args.optim,
+                                            loss_func=env_loss,
+                                            num_params=n_params,
+                                            init_values=params,
+                                            max_iters=args.max_iters,
+                                            num_workers=args.num_workers,
+                                            popsize=args.popsize,
+                                            bounds=bounds)
+        else:
+            max_iters_per_stage = args.max_iters // 3
+            sim.set_contact_scale(0.01)
+            params, losses_0 = optimize_params(optim_name=args.optim,
+                                             loss_func=env_loss,
+                                             num_params=n_params,
+                                             init_values=params,
+                                             max_iters=max_iters_per_stage,
+                                             num_workers=args.num_workers,
+                                             bounds=bounds,
+                                             popsize=args.popsize)
+
+            sim.set_contact_scale(0.1)
+            params, losses_1 = optimize_params(optim_name=args.optim,
+                                             loss_func=env_loss,
+                                             num_params=n_params,
+                                             init_values=params,
+                                             max_iters=max_iters_per_stage,
+                                             num_workers=args.num_workers,
+                                             bounds=bounds,
+                                             popsize=args.popsize)
+
+            sim.set_contact_scale(1)
+            params, losses_2 = optimize_params(optim_name=args.optim,
+                                             loss_func=env_loss,
+                                             num_params=n_params,
+                                             init_values=params,
+                                             max_iters=max_iters_per_stage,
+                                             num_workers=args.num_workers,
+                                             bounds=bounds,
+                                             popsize=args.popsize)
+            losses_1[:, 0] += max_iters_per_stage
+            losses_2[:, 0] += max_iters_per_stage * 2
+            losses = np.concatenate((losses_0, losses_1, losses_2), axis = 0)
 
         ''' save results '''
         with open(os.path.join(args.save_dir, 'params.npy'), 'wb') as fp:

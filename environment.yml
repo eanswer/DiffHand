@@ -1,4 +1,4 @@
-name: diffhand
+name: diffredmax
 channels:
   - pytorch
   - defaults

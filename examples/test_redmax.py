@@ -37,8 +37,8 @@ if __name__ == '__main__':
 
     t0 = time.time()
     for i in range(num_steps):
-        # sim.set_u(np.zeros(ndof_u))
-        sim.set_u((np.random.rand(ndof_u) - 0.5) * 2.)
+        sim.set_u(np.zeros(ndof_u))
+        # sim.set_u((np.random.rand(ndof_u) - 0.5) * 2.)
         # sim.set_u(np.ones(ndof_u))
         # sim.set_u(np.ones(ndof_u) * np.sin(i / 100 * np.pi))
         # if i < 50:

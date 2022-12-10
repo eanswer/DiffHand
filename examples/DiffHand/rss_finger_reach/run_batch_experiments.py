@@ -1,7 +1,5 @@
-import os, sys, signal
-import random
-import numpy as np
-from multiprocessing import Process, Queue, current_process, freeze_support
+import os
+from multiprocessing import Process, Queue
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -23,15 +21,13 @@ for i in range(args.num_seeds):
     seed = seeds[i]
     save_dir = os.path.join(args.save_dir, args.method, str(seed))
     if args.method == 'ours':
-        cmd = 'python example_assemble.py '\
-            '--continuation '\
+        cmd = 'python example_finger_reach.py '\
             '--seed {} '\
             '--save-dir {} '\
             '--visualize False'\
                 .format(seed, save_dir)
     elif args.method == 'control-only':
-        cmd = 'python example_assemble.py '\
-            '--continuation '\
+        cmd = 'python example_finger_reach.py '\
             '--seed {} '\
             '--save-dir {} '\
             '--no-design-optim '\
@@ -42,18 +38,16 @@ for i in range(args.num_seeds):
             '--seed {} '\
             '--save-dir {} '\
             '--optim CMA '\
-            '--continuation '\
-            '--max-iters 5000 '\
-            '--popsize 20 '\
+            '--max-iters 10000 '\
+            '--popsize 10 '\
             '--visualize False'\
                 .format(seed, save_dir)
     elif args.method == 'OnePlusOne':
         cmd = 'python grad_free.py '\
             '--seed {} '\
             '--save-dir {} '\
-            '--continuation '\
             '--optim OnePlusOne '\
-            '--max-iters 5000 '\
+            '--max-iters 10000 '\
             '--visualize False'\
                 .format(seed, save_dir)
     commands.append(cmd)

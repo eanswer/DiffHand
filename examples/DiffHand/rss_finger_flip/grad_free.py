@@ -1,62 +1,74 @@
 '''
-ES baselines for finger reach task
+ES baselines for finger flip task
 '''
 import os
 import sys
 
 import nevergrad as ng
 
-example_base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+example_base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../'))
 sys.path.append(example_base_dir)
+DiffHand_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
+sys.path.append(DiffHand_dir)
+working_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(working_dir)
+
 from parameterization import Design as Design_np
-import os
-import torch
-from renderer import SimRenderer
+from utils.renderer import SimRenderer
+from utils.common import *
+from common import *
 import numpy as np
 import redmax_py as redmax
 import argparse
-from common import *
-from pathlib import Path
 from grad_free_util import optimize_params
 import argparse
 
+'''compute the objectives by forward pass'''
 def forward(params):
     action = params[:ndof_u * num_ctrl_steps]
     u = np.tanh(action)
+    # u = np.clip(action, -1., 1.)
 
     if optimize_design_flag:
         cage_params = params[-ndof_cage:]
         design_params = design_np.parameterize(cage_params)
         sim.set_design_params(design_params)
-
+    
     sim.reset()
 
     # objectives coefficients
-    coef_u = 0.1
-    coef_task = 10.
+    coef_u = 5.
+    coef_touch = 1.
+    coef_flip = 50.
 
     f_u = 0.
-    f_task = 0.
+    f_touch = 0.
+    f_flip = 0.
 
     f = 0.
 
     for i in range(num_ctrl_steps):
-        traj_idx = i * sub_steps // num_task_steps
-        target_pos = target_traj[traj_idx]
-
         sim.set_u(u[i * ndof_u:(i + 1) * ndof_u])
-        sim.forward(sub_steps, verbose=False)
-
+        sim.forward(sub_steps, verbose = False)
+        
         variables = sim.get_variables()
+        q = sim.get_q()
 
         # compute objective f
         f_u_i = np.sum(u[i * ndof_u:(i + 1) * ndof_u] ** 2)
-        f_task_i = np.linalg.norm(variables - target_pos)  # L2-norm
-        f_u += f_u_i
-        f_task += f_task_i
-        f += coef_u * f_u_i + coef_task * f_task_i
+        f_touch_i = 0.
+        if i < num_ctrl_steps // 2:
+            f_touch_i += np.sum((variables[0:3] - variables[3:6]) ** 2) # MSE                     
+        f_flip_i = 0.
+        f_flip_i += (q[-1] - np.pi / 2.) ** 2
 
-    return f, {'f_u': f_u, 'f_task': f_task}
+        f_u += f_u_i
+        f_touch += f_touch_i
+        f_flip += f_flip_i
+        f += coef_u * f_u_i + coef_touch * f_touch_i + coef_flip * f_flip_i
+
+    return f, {'f_u': f_u, 'f_touch': f_touch, 'f_flip': f_flip}
+
 
 def env_loss(params):
     loss, _ = forward(params)
@@ -78,11 +90,11 @@ def callback_func(params, render=False, record=False, record_path=None, log=True
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('')
-    parser.add_argument("--model", type=str, default='rss_finger_reach')
+    parser.add_argument("--model", type=str, default='rss_finger_flip')
     parser.add_argument('--record', action='store_true')
     parser.add_argument('--save-dir', type=str, default='data')
     parser.add_argument('--num_workers', type=int, default=1)
-    parser.add_argument('--record-file-name', type=str, default='rss_finger_reach_grad_free')
+    parser.add_argument('--record-file-name', type=str, default='rss_finger_flip_grad_free')
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--optim', '-o', choices=['TwoPointsDE', 'NGOpt',
                                                   'OnePlusOne', 'CMA', 'TBPSA',
@@ -119,7 +131,7 @@ if __name__ == '__main__':
         sim.print_ctrl_info()
         sim.print_design_params_info()
 
-    num_steps = 600
+    num_steps = 150
 
     ndof_u = sim.ndof_u
     ndof_r = sim.ndof_r
@@ -129,15 +141,8 @@ if __name__ == '__main__':
     # set up camera
     sim.viewer_options.camera_pos = np.array([2.5, -4, 1.8])
 
-    # set task
-    target_traj = [np.array([10, -5, -5]), np.array([10, -5, 5]), np.array([20, 10, 10]), np.array([20, 10, -10])]
-    for i in range(len(target_traj)):
-        name = "target point " + str(i)
-        sim.update_virtual_object(name, target_traj[i])
-    num_task_steps = num_steps // len(target_traj)
-    
     design_np = Design_np()
-
+    
     # init design params
     cage_params = np.ones(9)
     ndof_cage = len(cage_params)
@@ -150,7 +155,7 @@ if __name__ == '__main__':
     sim.set_rendering_mesh_vertices(Vs)
 
     # init control sequence
-    sub_steps = 20
+    sub_steps = 5
     assert (num_steps % sub_steps) == 0
     num_ctrl_steps = num_steps // sub_steps
     if args.seed == 0:
@@ -179,7 +184,7 @@ if __name__ == '__main__':
             bounds.append((-1., 1.))
         if optimize_design_flag:
             for i in range(ndof_cage):
-                bounds.append((0.5, 4.))
+                bounds.append((0.5, 3.))
         bounds = np.array(bounds)
         params, losses = optimize_params(optim_name=args.optim,
                                          loss_func=env_loss,
