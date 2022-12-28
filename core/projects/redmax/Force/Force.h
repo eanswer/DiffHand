@@ -49,12 +49,22 @@ public:
     virtual void test_derivatives_runtime() {}
     virtual void test_design_derivatives_runtime() {}
     
+    // rendering
+    virtual void get_rendering_objects(
+        std::vector<Matrix3Xf>& vertex_list, 
+        std::vector<Matrix3Xi>& face_list,
+        std::vector<opengl_viewer::Option>& option_list,
+        std::vector<opengl_viewer::Animator*>& animator_list) {};
+
     void reset_time_report() {
         _time.clear();
     }
     void print_time_report() {
         _time.print_time_report();
     }
+    
+protected:
+    opengl_viewer::Animator* _animator;
 };
 
 }

@@ -2,6 +2,7 @@
 #include "Joint/Joint.h"
 #include "tiny_obj_loader.h"
 #include "Eigen/Eigenvalues"
+#include "Simulation.h"
 
 namespace redmax {
 
@@ -10,12 +11,15 @@ BodyMeshObj::BodyMeshObj(
     std::string filename,
     Matrix3 R, Vector3 p,
     TransformType transform_type,
-    dtype density) 
+    dtype density,
+    Vector3 scale) 
     : Body(sim, joint, density) {
     
     _filename = filename;
 
     load_mesh(_filename);
+
+    _V = _V.array().colwise() * scale.array();
 
     process_mesh();
 
@@ -188,7 +192,15 @@ void BodyMeshObj::get_rendering_objects(
     std::vector<opengl_viewer::Option>& option_list,
     std::vector<opengl_viewer::Animator*>& animator_list) {
     
-    Matrix3Xf vertex = _V.cast<float>() / 10.;
+    Matrix3Xf vertex = _V.cast<float>();
+
+    _rendering_vertices = vertex;
+    _rendering_faces = _F;
+    
+    if (_sim->_options->_unit == "cm-g") 
+        vertex /= 10.;
+    else
+        vertex *= 10.;
 
     opengl_viewer::Option object_option;
 
@@ -205,6 +217,11 @@ void BodyMeshObj::get_rendering_objects(
     face_list.push_back(_F);
     option_list.push_back(object_option);
     animator_list.push_back(_animator);
+}
+
+void BodyMeshObj::update_density(dtype density) {
+    _density = density;
+    process_mesh();
 }
 
 }

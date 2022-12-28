@@ -47,8 +47,6 @@ Simulation* SimEnvGenerator::createSinglePendulumTest(std::string integrator) {
 
     robot->_root_joints.push_back(joint);
 
-    // robot->init();
-
     sim->addRobot(robot);
     sim->init();
     
@@ -83,8 +81,6 @@ Simulation* SimEnvGenerator::createSinglePendulumObjTest(std::string integrator)
         (dtype)1.0);
 
     robot->_root_joints.push_back(joint);
-
-    // robot->init();
 
     sim->addRobot(robot);
     sim->init();
@@ -124,8 +120,6 @@ Simulation* SimEnvGenerator::createMultiPendulumTest(int num_links, std::string 
     }
     
     robot->_root_joints.push_back(joints[0]);
-
-    // robot->init();
     
     sim->addRobot(robot);
     sim->init();
@@ -152,8 +146,6 @@ Simulation* SimEnvGenerator::createPrismaticTest(std::string integrator) {
     BodyCuboid* body1 = new BodyCuboid(sim, joint1, Vector3(1, 1, 10), Matrix3::Identity(), Vector3(0, 0, -5.), 1.);
 
     robot->_root_joints.push_back(joint0);
-
-    // robot->init();
 
     sim->addRobot(robot);
     sim->init();
@@ -187,8 +179,6 @@ Simulation* SimEnvGenerator::createFree2DTest(std::string integrator) {
     BodyCuboid* body0 = new BodyCuboid(sim, joint0, Vector3(1, 1, 1), Matrix3::Identity(), Vector3::Zero(), 1.);
     
     robot->_root_joints.push_back(joint0);
-    
-    // robot->init();
 
     sim->addRobot(robot);
     sim->init();
@@ -224,8 +214,6 @@ Simulation* SimEnvGenerator::createFree3DEulerTest(std::string integrator) {
     robot->add_force(force0);
 
     robot->_root_joints.push_back(joint0);
-    
-    // robot->init();
 
     sim->addRobot(robot);
     sim->init();
@@ -263,8 +251,6 @@ Simulation* SimEnvGenerator::createFree3DExpTest(std::string integrator) {
     robot->add_force(force0);
 
     robot->_root_joints.push_back(joint0);
-    
-    // robot->init();
 
     sim->addRobot(robot);
     sim->init();
@@ -307,8 +293,6 @@ Simulation* SimEnvGenerator::createGroundContactTest(std::string integrator) {
     robot->add_force(force0);
 
     robot->_root_joints.push_back(joint0);
-    
-    // robot->init();
 
     sim->addRobot(robot);
     sim->init();
@@ -365,8 +349,6 @@ Simulation* SimEnvGenerator::createBoxContactTest(std::string integrator) {
     ForceCuboidCuboidContact* force2 = new ForceCuboidCuboidContact(sim, body0, body1, 1e4, 0.0);
     robot->add_force(force2);
 
-    // robot->init();
-
     sim->addRobot(robot);
     sim->init();
 
@@ -404,26 +386,24 @@ Simulation* SimEnvGenerator::createTorqueFingerDemo(std::string integrator) {
     Joint* joint0 = new JointRevolute(sim, 0, Vector3(0, 0, -1), nullptr, Matrix3::Identity(), Vector3(0., 10., 0.));
     joint0->set_damping(1e4);
     BodyCuboid* body0 = new BodyCuboid(sim, joint0, Vector3(4, 1, 1), Matrix3::Identity(), Vector3(2., 0., 0.), 1.);
-    Actuator* actuator0 = new ActuatorMotor(joint0, -1e5, 1e5);
+    Actuator* actuator0 = new ActuatorMotor("actuator", joint0, ActuatorMotor::ControlMode::FORCE, -1e5, 1e5);
     robot->add_actuator(actuator0);
 
     // PIP
     Joint* joint1 = new JointRevolute(sim, 1, Vector3(0, 0, -1), joint0, Matrix3::Identity(), Vector3(4., 0., 0.));
     joint1->set_damping(1e4);
     BodyCuboid* body1 = new BodyCuboid(sim, joint1, Vector3(2, 1, 1), Matrix3::Identity(), Vector3(1., 0., 0.), 1.);
-    Actuator* actuator1 = new ActuatorMotor(joint1, -1e5, 1e5);
+    Actuator* actuator1 = new ActuatorMotor("actuator", joint1, ActuatorMotor::ControlMode::FORCE, -1e5, 1e5);
     robot->add_actuator(actuator1);
 
     // DIP
     Joint* joint2 = new JointRevolute(sim, 2, Vector3(0, 0, -1), joint1, Matrix3::Identity(), Vector3(2., 0., 0.));
     joint2->set_damping(1e4);
     BodyCuboid* body2 = new BodyCuboid(sim, joint2, Vector3(1, 1, 1), Matrix3::Identity(), Vector3(0.5, 0., 0.), 1.);
-    Actuator* actuator2 = new ActuatorMotor(joint2, -1e5, 1e5);
+    Actuator* actuator2 = new ActuatorMotor("actuator", joint2, ActuatorMotor::ControlMode::FORCE, -1e5, 1e5);
     robot->add_actuator(actuator2);
 
     robot->_root_joints.push_back(joint0);
-
-    // robot->init();
 
     sim->addRobot(robot);
     sim->init();
@@ -462,21 +442,21 @@ Simulation* SimEnvGenerator::createTorqueFingerFlickDemo(std::string integrator)
     Joint* joint0 = new JointRevolute(sim, 0, Vector3(0, 0, -1), nullptr, Matrix3::Identity(), Vector3(0., 3.2, 0.));
     joint0->set_damping(1e4);
     BodyCuboid* body0 = new BodyCuboid(sim, joint0, Vector3(4, 1, 1), Matrix3::Identity(), Vector3(2., 0., 0.), 1.);
-    Actuator* actuator0 = new ActuatorMotor(joint0, -1e5, 1e5);
+    Actuator* actuator0 = new ActuatorMotor("actuator", joint0, ActuatorMotor::ControlMode::FORCE, -1e5, 1e5);
     robot->add_actuator(actuator0);
 
     // PIP
     Joint* joint1 = new JointRevolute(sim, 1, Vector3(0, 0, -1), joint0, Matrix3::Identity(), Vector3(4., 0., 0.));
     joint1->set_damping(1e4);
     BodyCuboid* body1 = new BodyCuboid(sim, joint1, Vector3(2, 1, 1), Matrix3::Identity(), Vector3(1., 0., 0.), 1.);
-    Actuator* actuator1 = new ActuatorMotor(joint1, -1e5, 1e5);
+    Actuator* actuator1 = new ActuatorMotor("actuator", joint1, ActuatorMotor::ControlMode::FORCE, -1e5, 1e5);
     robot->add_actuator(actuator1);
 
     // DIP
     Joint* joint2 = new JointRevolute(sim, 2, Vector3(0, 0, -1), joint1, Matrix3::Identity(), Vector3(2., 0., 0.));
     joint2->set_damping(1e4);
     BodyCuboid* body2 = new BodyCuboid(sim, joint2, Vector3(1, 1, 1), Matrix3::Identity(), Vector3(0.5, 0., 0.), 1.);
-    Actuator* actuator2 = new ActuatorMotor(joint2, -1e5, 1e5);
+    Actuator* actuator2 = new ActuatorMotor("actuator", joint2, ActuatorMotor::ControlMode::FORCE, -1e5, 1e5);
     robot->add_actuator(actuator2);
 
     // Box
@@ -552,8 +532,6 @@ Simulation* SimEnvGenerator::createSphereGroundContactTest(std::string integrato
     robot->add_force(force0);
 
     robot->_root_joints.push_back(joint0);
-    
-    // robot->init();
 
     sim->addRobot(robot);
     sim->init();

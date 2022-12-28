@@ -1,28 +1,74 @@
 #include "Body/BodyAbstract.h"
 #include "tiny_obj_loader.h"
+#include "Simulation.h"
 
 namespace redmax {
 
 BodyAbstract::BodyAbstract(
     Simulation* sim, Joint* joint, 
     Matrix3 R_ji, Vector3 p_ji,
-    dtype mass, Vector3 Inertia,
-    std::string rendering_mesh_filename)
-    : Body(sim, joint, R_ji, p_ji, 0.0) {
+    dtype mass, VectorX Inertia,
+    std::string visual_mesh_filename, Matrix3 visual_frame_R, Vector3 visual_frame_pos,  
+    std::vector<Vector3> collision_points, Matrix3 collision_frame_R, Vector3 collision_frame_pos,
+    Vector3 scale)
+    : Body(sim, joint, 0.0) {
 
-    if (rendering_mesh_filename != "") {
+    _mass = mass;
+
+    if (visual_mesh_filename != "") {
         _rendering_mesh_exists = true;
-        load_mesh(rendering_mesh_filename);
+        load_visual_mesh(visual_mesh_filename);
+        _V = _V.array().colwise() * scale.array();
     } else {
         _rendering_mesh_exists = false;
     }
     
-    _mass = mass;
-    _Inertia.head(3) = Inertia;
-    _Inertia.tail(3).setConstant(_mass);
+    if (Inertia.size() == 6) { // xx, xy, xz, yy, yz, zz // DEBUG: TO BE TESTED
+        // get the principal axes for inertia tensor by eigenvalue decomposition
+        // https://en.wikipedia.org/wiki/Moment_of_inertia#Principal_axes
+
+        Matrix3 I;
+        I(0, 0) = Inertia(0), I(0, 1) = I(1, 0) = Inertia(1), I(0, 2) = I(2, 0) = Inertia(2);
+        I(1, 1) = Inertia(3), I(1, 2) = I(2, 1) = Inertia(4);
+        I(2, 2) = Inertia(5);
+        Eigen::SelfAdjointEigenSolver<Matrix3> eigensolver(I);
+        Vector3 eigen_values = eigensolver.eigenvalues();
+        Matrix3 eigen_vector3 = eigensolver.eigenvectors();
+        _Inertia.head(3) = eigen_values;
+        _Inertia.tail(3).setConstant(_mass);
+
+        Matrix3 R_oldi_i = eigen_vector3;
+        if (R_oldi_i.determinant() < 0.0) {
+            R_oldi_i = -R_oldi_i;
+        }
+
+        // update the new body frame
+        R_ji = R_ji * R_oldi_i;
+        
+        // update the visual mesh R
+        visual_frame_R = R_oldi_i.transpose() * visual_frame_R;
+
+        // update the collision mesh R
+        collision_frame_R = R_oldi_i.transpose() * collision_frame_R;
+    } else {
+        _Inertia.head(3) = Inertia;
+        _Inertia.tail(3).setConstant(_mass);
+    }
+
+    // transform the visual mesh into body frame
+    if (_rendering_mesh_exists) {
+        _V = (visual_frame_R * _V).colwise() + visual_frame_pos;
+    }
+
+    // transform the collision points into body frame
+    for (int i = 0;i < collision_points.size();i++)
+        collision_points[i] = collision_frame_R * collision_points[i] + collision_frame_pos;
+    
+    set_contacts(collision_points);
+    set_transform(R_ji, p_ji);
 }
 
-void BodyAbstract::load_mesh(std::string filename) {
+void BodyAbstract::load_visual_mesh(std::string filename) {
     std::vector<tinyobj::shape_t> obj_shape;
     std::vector<tinyobj::material_t> obj_material;
     tinyobj::attrib_t attrib;
@@ -72,7 +118,15 @@ void BodyAbstract::get_rendering_objects(
         object_option.SetVectorOption("specular", 0.774597f, 0.658561f, 0.400621f);
         object_option.SetFloatOption("shininess", 76.8f);
 
-        Matrix3Xf vertex = _V.cast<float>() / 10.;
+        Matrix3Xf vertex = _V.cast<float>();
+
+        _rendering_vertices = vertex;
+        _rendering_faces = _F;
+
+        if (_sim->_options->_unit == "cm-g") 
+            vertex = vertex / 10.;
+        else
+            vertex = vertex * 10.;
 
         vertex_list.push_back(vertex);
         face_list.push_back(_F);
@@ -99,7 +153,16 @@ void BodyAbstract::get_rendering_objects(
         length(2) = sqrt((_Inertia(1) + _Inertia(0) - _Inertia(2)) * 6 / _mass);
         
         for (int i = 0;i < 3;i++)
-            cube_vertex.row(i) *= (float)length(i) / 10.;
+            cube_vertex.row(i) *= (float)length(i);
+        
+        
+        _rendering_vertices = cube_vertex;
+        _rendering_faces = cube_face;
+        
+        if (_sim->_options->_unit == "cm-g") 
+            cube_vertex /= 10.;
+        else
+            cube_vertex *= 10.;
         
         vertex_list.push_back(cube_vertex);
         face_list.push_back(cube_face);

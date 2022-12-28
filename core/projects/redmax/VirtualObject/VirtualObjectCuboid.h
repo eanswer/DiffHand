@@ -5,14 +5,16 @@
 
 namespace redmax {
 
-class VirtualObjectSphere : public VirtualObject {
+class VirtualObjectCuboid : public VirtualObject {
 public:
-    VirtualObjectSphere(const Simulation* sim, std::string name, Vector3 pos_world, dtype radius, bool use_texture, Vector3 color, std::string texture_path);
+    VirtualObjectCuboid(const Simulation* sim, std::string name, 
+                        Vector3 length, Vector3 pos_world, Matrix3 R,
+                        bool use_texture, Vector3 color, std::string texture_path);
 
-    // data can be either in size 3 (xyz location) or in length 6 (xyz location, rgb color)
+    // data can be either in size 7 (xyz location, quaternion) or in length 10 (xyz location, quaternion, rgb color)
     void update_data(VectorX data);
     VectorX get_data();
-
+    
     // rendering
     void get_rendering_objects(
         std::vector<Matrix3Xf>& vertex_list, 
@@ -23,8 +25,9 @@ public:
     Matrix4 get_transform_matrix();
     
 private:
+    Vector3 _length;
     Vector3 _pos_world;
-    dtype _radius;
+    Matrix3 _R;
 };
 
 }

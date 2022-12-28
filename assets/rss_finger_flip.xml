@@ -69,7 +69,7 @@
     <robot>
 		<link name="box">
 			<joint name="box" type="revolute" axis = "0 -1 0 " pos="15 0 -10" quat="1 0 0 0" damping="1e4"/>
-            <body name="box" type="cuboid" size="6 6 6" pos="3 0 3" quat="1 0 0 0" density="1.0" rgba="0.5 0.5 0.5 1"/>
+            <body name="box" type="cuboid" size="6 6 6" pos="3 0 3" quat="1 0 0 0" density="1.0" rgba="0.5 0.5 0.5 1" general_contact_resolution="2 2 2"/>
 		</link>
 	</robot>
 

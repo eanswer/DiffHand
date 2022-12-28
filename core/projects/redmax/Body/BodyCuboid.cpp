@@ -1,11 +1,18 @@
 #include "BodyCuboid.h"
+#include "Simulation.h"
 
 namespace redmax {
 
 BodyCuboid::BodyCuboid(Simulation *sim, Joint *joint, Vector3 length, 
-            Matrix3 R_ji, Vector3 p_ji, dtype density) 
+            Matrix3 R_ji, Vector3 p_ji, dtype density,
+            Vector3i general_contact_resolution) 
             : BodyPrimitiveShape(sim, joint, R_ji, p_ji, density) {
     _length = length;
+    _general_contact_resolution = general_contact_resolution;
+
+    if (_general_contact_resolution[0] <= 1 || _general_contact_resolution[1] <= 1 || _general_contact_resolution[2] <= 1) {
+        throw_error("General contact resolution of cuboid should be at least 2.");
+    }
     precompute_contact_points();
     computeMassMatrix();
 }
@@ -20,26 +27,19 @@ void BodyCuboid::computeMassMatrix() {
 
 void BodyCuboid::precompute_contact_points() {
     _contact_points.clear();
-    for (int i = -1;i <= 1;i += 2)
-        for (int j = -1;j <= 1;j += 2) 
-            for (int k = -1;k <= 1;k += 2)
-                _contact_points.push_back(Vector3(i * _length[0] * 0.5, j * _length[1] * 0.5, k * _length[2] * 0.5));
+    for (int i = 0;i < _general_contact_resolution[0];i++)
+        for (int j = 0;j < _general_contact_resolution[1];j++)
+            for (int k = 0;k < _general_contact_resolution[2];k++) {
+                Vector3 pos;
+                pos(0) = (double)i / (_general_contact_resolution[0] - 1) * _length[0] - _length[0] / 2.;
+                pos(1) = (double)j / (_general_contact_resolution[1] - 1) * _length[1] - _length[1] / 2.;
+                pos(2) = (double)k / (_general_contact_resolution[2] - 1) * _length[2] - _length[2] / 2.;
+                
+                if (i == 0 || j == 0 || k == 0 || i == _general_contact_resolution[0] - 1 || j == _general_contact_resolution[1] - 1 || k == _general_contact_resolution[2] - 1)
+                    _contact_points.push_back(pos);
+            }
 }
 
-std::vector<Vector3> BodyCuboid::get_general_contact_points() {
-    std::vector<Vector3> contact_points;
-    contact_points.clear();
-    for (int i = 0;i < 6;i++)
-        for (int j = 0;j < 6;j++)
-            for (int k = 0;k < 6;k++) {
-                Vector3 pos;
-                pos(0) = (double)i / 5 * _length[0] - _length[0] / 2.;
-                pos(1) = (double)j / 5 * _length[1] - _length[1] / 2.;
-                pos(2) = (double)k / 5 * _length[2] - _length[2] / 2.;
-                contact_points.push_back(pos);
-            }
-    return contact_points;
-}
 
 // rendering
 void BodyCuboid::get_rendering_objects(
@@ -91,7 +91,15 @@ void BodyCuboid::get_rendering_objects(
     }
 
     for (int i = 0;i < 3;i++)
-        cube_vertex.row(i) *= (float)_length(i) / 10.;
+        cube_vertex.row(i) *= (float)_length(i);
+
+    _rendering_vertices = cube_vertex;
+    _rendering_faces = cube_face;
+    
+    if (_sim->_options->_unit == "cm-g") 
+        cube_vertex /= 10.;
+    else
+        cube_vertex *= 10.;
 
     if (!_use_texture) {
         object_option.SetVectorOption("ambient", _color(0), _color(1), _color(2));
@@ -271,6 +279,18 @@ void BodyCuboid::collision(
     dtdot_dq2.leftCols(3) = -dxw2dot_dq2.leftCols(3) - n.transpose() * vw * dn_dq2.leftCols(3) - n * (vw.transpose() * dn_dq2.leftCols(3) - n.transpose() * dxw2dot_dq2.leftCols(3));
     dtdot_dq2.rightCols(3) = (I - n * n.transpose()) * (-dxw2dot_dq2.rightCols(3));
     dtdot_dphi2 = (I - n * n.transpose()) * (- dxw2dot_dphi2);
+}
+
+void BodyCuboid::update_density(dtype density) {
+    _density = density;
+    computeMassMatrix();
+}
+
+void BodyCuboid::update_size(VectorX body_size) {
+    assert(body_size.size() == 3);
+    _length = body_size;
+    precompute_contact_points();
+    computeMassMatrix();
 }
 
 void BodyCuboid::test_collision_derivatives() {

@@ -9,8 +9,10 @@ const Eigen::Matrix4f EndEffectorAnimator::AnimatedModelMatrix(const float t) {
     Matrix4f model_matrix = _end_effector->_joint->_E_0j.cast<float>();;
     Vector3f pos_world = (_end_effector->_joint->position_in_world(_end_effector->_pos)).cast<float>();;
     
-    model_matrix.topRightCorner(3, 1) = pos_world / 10.; // scale for better visualization
-
+    if (_end_effector->_joint->_sim->_options->_unit == "cm-g")
+        model_matrix.topRightCorner(3, 1) = pos_world / 10.; // scale for better visualization
+    else    
+        model_matrix.topRightCorner(3, 1) = pos_world * 10.; // scale for better visualization
     return model_matrix;
 }
 
@@ -90,6 +92,10 @@ void EndEffector::computeVariablesWithDerivative(VectorX& variables, MatrixX& dv
     }
 }
 
+void EndEffector::update_position(Vector3 position) {
+    _pos = position;
+}
+
 // rendering
 void EndEffector::get_rendering_objects(
     std::vector<Matrix3Xf>& vertex_list, 
@@ -107,7 +113,16 @@ void EndEffector::get_rendering_objects(
         vertex, face, uv);
 
     for (int i = 0;i < 3;i++)
-        vertex.row(i) *= (float)_radius / 10.;
+        vertex.row(i) *= (float)_radius;
+
+    _rendering_vertices = vertex;
+    _rendering_faces = face;
+
+    if (_joint->_sim->_options->_unit == "cm-g") {
+        vertex /= 10.;
+    } else {
+        vertex *= 10.;
+    }
 
     object_option.SetBoolOption("smooth normal", false);
     object_option.SetVectorOption("ambient", _color(0), _color(1), _color(2));

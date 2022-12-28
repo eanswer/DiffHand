@@ -25,7 +25,8 @@ public:
                     std::string filename, 
                     Matrix3 R, Vector3 p, 
                     TransformType transform_type = BODY_TO_JOINT,
-                    dtype density = (dtype)1.0);
+                    dtype density = (dtype)1.0,
+                    Vector3 scale = Vector3::Ones());
 
     // rendering
     void get_rendering_objects(
@@ -34,6 +35,8 @@ public:
         std::vector<opengl_viewer::Option>& option_list,
         std::vector<opengl_viewer::Animator*>& animator_list);
 
+    void update_density(dtype density);
+    
 private:
     void load_mesh(std::string filename);
 

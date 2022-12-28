@@ -118,7 +118,6 @@ void SimViewer::initialize() {
     }
     opengl_viewer::Image checker_texture;
     checker_texture.Initialize(checker_image);
-
     if (_sim->_viewer_options->_ground) {
         // A simple ground.
         Eigen::Matrix3Xf vertex = (Eigen::Matrix<float, 3, 4>()

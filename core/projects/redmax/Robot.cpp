@@ -8,9 +8,15 @@
 #include "Joint/JointDesignParameters.h"
 #include "Body/BodyDesignParameters.h"
 #include "Body/BodyAbstract.h"
+#include "Body/BodyPrimitiveShape.h"
 #include "Force/ForceGeneralPrimitiveContact.h"
+#include "Sensor/TactileSensor.h"
 
 namespace redmax {
+
+void Robot::add_tactile_sensor(TactileSensor* tactile_sensor) {
+    _tactile_sensors.push_back(tactile_sensor);
+}
 
 void Robot::add_force(Force* force) {
     _forces.push_back(force);
@@ -92,6 +98,17 @@ void Robot::init(bool verbose) {
             end_effector->_index.push_back(_ndof_var++);
         }
     }
+
+    _ndof_virtual = 0;
+    for (auto virtual_object : _virtual_objects) {
+        _ndof_virtual += virtual_object->get_data_dim();
+    }
+
+    _ndof_tactile = 0;
+    for (auto tactile_sensor : _tactile_sensors) {
+        _ndof_tactile += tactile_sensor->_pos_i.size() * 3;
+    }
+    _tactile_force = VectorX::Zero(_ndof_tactile);
 
     // count design dofs
     _ndof_p1 = _ndof_p2 = _ndof_p3 = _ndof_p4 = _ndof_p5 = _ndof_p6 = 0;
@@ -232,6 +249,12 @@ VectorX Robot::get_variables() {
 }
 
 // control variables
+void Robot::update_actuator_states(const VectorX& q_next, const VectorX& qdot_next) {
+    for (auto actuator : _actuators) {
+        actuator->update_states(q_next, qdot_next);
+    }
+}
+
 VectorX Robot::get_u() {
     VectorX u = VectorX::Zero(_ndof_u);
     for (auto actuator : _actuators) {
@@ -256,6 +279,14 @@ void Robot::get_ctrl_range(VectorX& ctrl_min, VectorX& ctrl_max) {
     }
 }
 
+VectorX Robot::get_ctrl_force() {
+    VectorX force = VectorX::Zero(_ndof_u);
+    for (auto actuator : _actuators) {
+        force.segment(actuator->_joint->_index[0], actuator->_joint->_ndof) = actuator->_fr;
+    }
+    return force;
+}
+
 void Robot::print_ctrl_info() {
     std::cerr << " ------------- Control Info ------------ " << std::endl;
     std::cerr << "|             Name             |  #Dof  |" << std::endl;
@@ -265,6 +296,96 @@ void Robot::print_ctrl_info() {
     }
     std::cerr << " --------------------------------------- " << std::endl;
 }
+
+// tactile related functions
+std::vector<Vector3> Robot::get_tactile_sensor_pos(std::string name) {
+    for (auto sensor : _tactile_sensors) {
+        if (sensor->_name == name) {
+            return sensor->get_tactile_sensor_pos();
+        }
+    }
+    return std::vector<Vector3>();
+}
+
+std::vector<Vector2i> Robot::get_tactile_image_pos(std::string name) {
+    for (auto tactile_sensor : _tactile_sensors) {
+        if (tactile_sensor->_name == name) {
+            return tactile_sensor->_image_pos;
+        }
+    }
+}
+
+std::vector<dtype> Robot::get_tactile_depth(std::string name) {
+    for (auto tactile_sensor : _tactile_sensors) {
+        if (tactile_sensor->_name == name) {
+            tactile_sensor->compute_tactile_values();
+            return tactile_sensor->_depth;
+        }
+    }
+}
+
+std::vector<dtype> Robot::get_tactile_normal_force(std::string name) {
+    for (auto tactile_sensor : _tactile_sensors) {
+        if (tactile_sensor->_name == name) {
+            tactile_sensor->compute_tactile_values();
+            return tactile_sensor->_normal_force;
+        }
+    }
+}
+
+std::vector<Vector2> Robot::get_tactile_shear_force(std::string name) {
+    for (auto tactile_sensor : _tactile_sensors) {
+        if (tactile_sensor->_name == name) {
+            tactile_sensor->compute_tactile_values();
+            return tactile_sensor->_shear_force;
+        }
+    }
+}
+
+std::vector<Vector3> Robot::get_tactile_force(std::string name) {
+    for (auto tactile_sensor : _tactile_sensors) {
+        if (tactile_sensor->_name == name) {
+            tactile_sensor->compute_tactile_values();
+            std::vector<Vector3> tactile_force(tactile_sensor->_normal_force.size(), Vector3::Zero());
+            for (int i = 0;i < tactile_force.size();++i) {
+                tactile_force[i].head(2) = tactile_sensor->_shear_force[i];
+                tactile_force[i](2) = tactile_sensor->_normal_force[i];
+            }
+            return tactile_force;
+        }
+    }
+}
+
+VectorX Robot::get_tactile_force_vector() {
+    int offset = 0;
+    for (auto tactile_sensor : _tactile_sensors) {
+        tactile_sensor->compute_tactile_values();
+        // tactile_sensor->test_derivatives_runtime();
+        for (int i = 0;i < tactile_sensor->_normal_force.size();++i) {
+            _tactile_force.segment(offset + i * 3, 3) = tactile_sensor->_tactile_force[i];
+        }
+        offset += 3 * tactile_sensor->_normal_force.size();
+    }
+    return _tactile_force;
+}
+
+std::vector<std::vector<std::vector<Vector3>>> Robot::get_tactile_flow_images() {
+    std::vector<std::vector<std::vector<Vector3>>> tactile_flow_images;
+    for (int i = 0;i < _tactile_sensors.size();++i) {
+        _tactile_sensors[i]->compute_tactile_values();
+        int nrows = 0, ncols = 0;
+        for (int j = 0;j < _tactile_sensors[i]->_image_pos.size();++j) {
+            nrows = max(nrows, _tactile_sensors[i]->_image_pos[j](0) + 1);
+            ncols = max(ncols, _tactile_sensors[i]->_image_pos[j](1) + 1);
+        }
+        std::vector<std::vector<Vector3>> flow_image = std::vector<std::vector<Vector3>>(nrows, std::vector<Vector3>(ncols, Vector3::Zero()));
+        for (int j = 0;j < _tactile_sensors[i]->_tactile_force.size();++j)
+            flow_image[_tactile_sensors[i]->_image_pos[j](0)][_tactile_sensors[i]->_image_pos[j](1)] = _tactile_sensors[i]->_tactile_force[j];
+        tactile_flow_images.push_back(flow_image);
+    }
+    return tactile_flow_images;
+}
+
 
 // design parameters
 VectorX Robot::get_design_params() {
@@ -418,6 +539,7 @@ void Robot::set_rendering_mesh(const std::vector<Matrix3X> &Vs, const std::vecto
     }
 }
 
+// functions for virtual objects
 void Robot::update_virtual_object(std::string name, VectorX data) {
     for (auto virtual_object : _virtual_objects) {
         if (virtual_object->_name == name)
@@ -425,31 +547,130 @@ void Robot::update_virtual_object(std::string name, VectorX data) {
     }
 }
 
+VectorX Robot::get_virtual_object_data() {
+    VectorX all_data = VectorX::Zero(_ndof_virtual);
+    int idx = 0;
+    for (auto virtual_object : _virtual_objects) {
+        VectorX data = virtual_object->get_data();
+        all_data.segment(idx, data.size()) = data;
+        idx += data.size();
+    }
+    return all_data;
+}
+
+void Robot::set_virtual_object_data(const VectorX& data) {
+    int idx = 0;
+    for (auto virtual_object : _virtual_objects) {
+        int data_dim = virtual_object->get_data_dim();
+        virtual_object->update_data(data.segment(idx, data_dim));
+        idx += data_dim;
+    }
+}
+
+// functions to update simulation parameters
+void Robot::update_contact_parameters(std::string body1, std::string body2, dtype kn, dtype kt, dtype mu, dtype damping) {
+    for (auto force : _forces) {
+        if (dynamic_cast<ForceGeneralPrimitiveContact*>(const_cast<Force*>(force)) != nullptr) {
+            ForceGeneralPrimitiveContact* gpforce = dynamic_cast<ForceGeneralPrimitiveContact*>(const_cast<Force*>(force));
+            if (gpforce->_contact_body->_name == body1 && gpforce->_primitive_body->_name == body2) {
+                gpforce->_kn = kn;
+                gpforce->_kt = kt;
+                gpforce->_mu = mu;
+                gpforce->_damping = damping;
+            }
+        }
+    }
+}
+
+void Robot::update_tactile_parameters(std::string name, dtype kn, dtype kt, dtype mu, dtype damping) {
+    for (auto sensor : _tactile_sensors) {
+        if (sensor->_name == name) {
+            sensor->_kn = kn;
+            sensor->_kt = kt;
+            sensor->_mu = mu;
+            sensor->_damping = damping;
+        }
+    }
+}
+
+void Robot::update_body_density(std::string body_name, dtype density) {
+    for (auto body : _bodies) {
+        if (body->_name == body_name) {
+            body->update_density(density);
+        }
+    }
+}
+
+void Robot::update_body_color(std::string body_name, Vector3 color) {
+    for (auto body : _bodies) {
+        if (body->_name == body_name) {
+            body->set_color(color);
+        }
+    }
+}
+
+void Robot::update_body_size(std::string body_name, VectorX body_size) {
+    for (auto body : _bodies) {
+        if (body->_name == body_name) {
+            body->update_size(body_size);
+        }
+    }
+}
+
+void Robot::update_joint_damping(std::string joint_name, dtype damping) {
+    for (auto joint : _joints) {
+        if (joint->_name == joint_name) {
+            joint->set_damping(damping);
+        }
+    }
+}
+
+void Robot::update_tactile_sensor_pos(std::string name, std::vector<Vector3>& new_pos) {
+    for (auto sensor : _tactile_sensors) {
+        if (sensor->_name == name) {
+            sensor->update_tactile_sensor_pos(new_pos);
+        }
+    }
+}
+
+void Robot::update_joint_location(std::string joint_name, Vector3 joint_location) {
+    for (auto joint : _joints) {
+        if (joint->_name == joint_name) {
+            joint->update_joint_location(joint_location);
+        }
+    }
+}
+
+void Robot::update_endeffector_position(std::string endeffector_name, Vector3 position) {
+    for (auto endeffector : _end_effectors) {
+        if (endeffector->_name == endeffector_name) {
+            endeffector->update_position(position);
+        }
+    }
+}
+
 void Robot::computeMaximalMassMatrix(VectorX& Mm) {
     // compute the mass matrix in maximal coordinates
     // M = diagonal(M_0, M_1, ..., M_n)
-    Mm = VectorX::Zero(_ndof_m);
     for (auto body : _bodies) {
-        for (int i = 0;i < 6;i++) {
-            Mm(body->_index[i]) = body->_Inertia[i];
-        }
+        Mm.segment(body->_index[0], 6) = body->_Inertia;
     }
 }
 
 void Robot::computeForce(VectorX& fm, VectorX& fr) {
     // compute the force vector in maximal coordinates
     // fm = f_coriolis + f_gravity + f_external
-    fm = VectorX::Zero(_ndof_m);
+    fm.setZero();
     for (auto body : _bodies) {
         body->computeMaximalForce(fm);
     }
     // compute the force vector in reduced coordinates
-    fr = VectorX::Zero(_ndof_r);
+    fr.setZero();
     for (auto joint : _joints) 
         joint->computeJointForce(fr);
+    // std::cerr << "----------------------------- new iteration -----------------------------" << std::endl;
     for (auto force : _forces)
         force->computeForce(fm, fr);
-
     for (auto actuator : _actuators)
         actuator->computeForce(fm, fr);
 }
@@ -457,15 +678,15 @@ void Robot::computeForce(VectorX& fm, VectorX& fr) {
 void Robot::computeForceWithDerivative(VectorX& fm, VectorX& fr, MatrixX& Km, MatrixX& Dm, MatrixX& Kr, MatrixX& Dr, bool verbose) {
     // compute the force vector in maximal coordinates and their derivatives w.r.t phi
     // fm = f_coriolis + f_gravity + f_external
-    fm = VectorX::Zero(_ndof_m);
-    Km = MatrixX::Zero(_ndof_m, _ndof_m);
-    Dm = MatrixX::Zero(_ndof_m, _ndof_m);
+    fm.setZero();
+    Km.setZero();
+    Dm.setZero();
     for (auto body : _bodies) {
         body->computeMaximalForceWithDerivative(fm, Km, Dm);
     }
-    fr = VectorX::Zero(_ndof_r);
-    Kr = MatrixX::Zero(_ndof_r, _ndof_r);
-    Dr = MatrixX::Zero(_ndof_r, _ndof_r);
+    fr.setZero();
+    Kr.setZero();
+    Dr.setZero();
     for (auto joint : _joints) 
         joint->computeJointForceWithDerivative(fr, Kr, Dr);
 
@@ -483,16 +704,16 @@ void Robot::computeForceWithDerivative(
     
     // compute the force vector in maximal coordinates and their derivatives w.r.t phi
     // fm = f_coriolis + f_gravity + f_external
-    fm = VectorX::Zero(_ndof_m);
-    Km = MatrixX::Zero(_ndof_m, _ndof_m);
-    Dm = MatrixX::Zero(_ndof_m, _ndof_m);
+    fm.setZero();
+    Km.setZero();
+    Dm.setZero();
     dfm_dp = MatrixX::Zero(_ndof_m, _ndof_p);
     for (auto body : _bodies) {
         body->computeMaximalForceWithDerivative(fm, Km, Dm, dfm_dp);
     }
-    fr = VectorX::Zero(_ndof_r);
-    Kr = MatrixX::Zero(_ndof_r, _ndof_r);
-    Dr = MatrixX::Zero(_ndof_r, _ndof_r);
+    fr.setZero();
+    Kr.setZero();
+    Dr.setZero();
     dfr_dp = MatrixX::Zero(_ndof_r, _ndof_p);
     for (auto joint : _joints) {
         joint->computeJointForceWithDerivative(fr, Kr, Dr, dfr_dp);
@@ -514,16 +735,16 @@ void Robot::computeForceWithDerivative(
     
     // compute the force vector in maximal coordinates and their derivatives w.r.t phi
     // fm = f_coriolis + f_gravity + f_external
-    fm = VectorX::Zero(_ndof_m);
-    Km = MatrixX::Zero(_ndof_m, _ndof_m);
-    Dm = MatrixX::Zero(_ndof_m, _ndof_m);
+    fm.setZero();
+    Km.setZero();
+    Dm.setZero();
     dfm_dp.setZero();
     for (auto body : _bodies) {
         body->computeMaximalForceWithDerivative(fm, Km, Dm, dfm_dp);
     }
-    fr = VectorX::Zero(_ndof_r);
-    Kr = MatrixX::Zero(_ndof_r, _ndof_r);
-    Dr = MatrixX::Zero(_ndof_r, _ndof_r);
+    fr.setZero();
+    Kr.setZero();
+    Dr.setZero();
     dfr_dp.setZero();
     for (auto joint : _joints) {
         joint->computeJointForceWithDerivative(fr, Kr, Dr, dfr_dp);
@@ -552,16 +773,16 @@ void Robot::computeForceWithDerivative(
     
     // compute the force vector in maximal coordinates and their derivatives w.r.t phi
     // fm = f_coriolis + f_gravity + f_external
-    fm = VectorX::Zero(_ndof_m);
-    Km = MatrixX::Zero(_ndof_m, _ndof_m);
-    Dm = MatrixX::Zero(_ndof_m, _ndof_m);
+    fm.setZero();
+    Km.setZero();
+    Dm.setZero();
     dfm_dp = MatrixX::Zero(_ndof_m, _ndof_p);
     for (auto body : _bodies) {
         body->computeMaximalForceWithDerivative(fm, Km, Dm, dfm_dp);
     }
-    fr = VectorX::Zero(_ndof_r);
-    Kr = MatrixX::Zero(_ndof_r, _ndof_r);
-    Dr = MatrixX::Zero(_ndof_r, _ndof_r);
+    fr.setZero();
+    Kr.setZero();
+    Dr.setZero();
     dfr_dp.setZero();
     for (auto joint : _joints) {
         joint->computeJointForceWithDerivative(fr, Kr, Dr, dfr_dp);
@@ -583,21 +804,27 @@ void Robot::computeJointJacobian(MatrixX& J, MatrixX& Jdot) {
     // compute joint jacobian J_mr: phi = J_mr * qdot
     // compute its time derivative Jdot
     // follow pseudo-code Algorithm (2)
-    J = MatrixX::Zero(_ndof_m, _ndof_r);
-    Jdot = MatrixX::Zero(_ndof_m, _ndof_r);
     for (auto joint : _joints) {
         if (joint->_ndof > 0) {
             J.block(joint->_body->_index[0], joint->_index[0], 6, joint->_ndof).noalias() = joint->_body->_A_ij * joint->_S_j;
             Jdot.block(joint->_body->_index[0], joint->_index[0], 6, joint->_ndof).noalias() = joint->_body->_A_ij * joint->_S_j_dot;
         }
         Joint* parent = joint->_parent;
+        // MatrixX tmp = joint->_A_jp;
+        // MatrixX tmp1 = -joint->_A_inv * joint->_Adot * joint->_A_inv * math::Ad(joint->_E_jp_0);
         for (Joint* now = parent; now != nullptr; now = now->_parent) {
             if (now->_ndof > 0) {
                 J.block(joint->_body->_index[0], now->_index[0], 6, now->_ndof).noalias() = joint->_body->_A_ip * J.block(parent->_body->_index[0], now->_index[0], 6, now->_ndof);
                 Jdot.block(joint->_body->_index[0], now->_index[0], 6, now->_ndof).noalias() =
                     joint->_body->_A_ip_dot * J.block(parent->_body->_index[0], now->_index[0], 6, now->_ndof)
                     + joint->_body->_A_ip * Jdot.block(parent->_body->_index[0], now->_index[0], 6, now->_ndof);
+                // J.block(joint->_body->_index[0], now->_index[0], 6, now->_ndof) = joint->_body->_A_ij * tmp * now->_S_j;
+                // Jdot.block(joint->_body->_index[0], now->_index[0], 6, now->_ndof).noalias() =
+                //     joint->_body->_A_ij * tmp1 * now->_S_j
+                //     + joint->_body->_A_ij * tmp * now->_S_j_dot;
             }
+            // tmp1 = tmp1 * now->_A_jp - tmp * now->_A_inv * now->_Adot * now->_A_inv * math::Ad(now->_E_jp_0);
+            // tmp = tmp * now->_A_jp;
         }
     }
 }
@@ -606,11 +833,7 @@ void Robot::computeJointJacobianWithDerivative(MatrixX& J, MatrixX& Jdot, Jacobi
     // compute joint jacobian J_mr: phi = J_mr * qdot
     // compute its time derivative Jdot
     // compute their derivative w.r.t q
-    // follow pseudo-code Algorithm (11)
-    J = MatrixX::Zero(_ndof_m, _ndof_r);
-    Jdot = MatrixX::Zero(_ndof_m, _ndof_r);
-    dJ_dq = JacobianMatrixVector(_ndof_m, _ndof_r, _ndof_r);
-    dJdot_dq = JacobianMatrixVector(_ndof_m, _ndof_r, _ndof_r);
+    // follow pseudo-code Slgorithm (11)
     for (auto joint : _joints) {
         if (joint->_ndof > 0) {
             J.block(joint->_body->_index[0], joint->_index[0], 6, joint->_ndof).noalias() = joint->_body->_A_ij * joint->_S_j;
@@ -621,12 +844,18 @@ void Robot::computeJointJacobianWithDerivative(MatrixX& J, MatrixX& Jdot, Jacobi
             }
         }
         Joint* parent = joint->_parent;
+        // MatrixX tmp = joint->_A_jp;
+        // MatrixX tmp1 = -joint->_A_inv * joint->_Adot * joint->_A_inv * math::Ad(joint->_E_jp_0);
         for (Joint* now = parent; now != nullptr; now = now->_parent) {
             if (now->_ndof > 0) {
                 J.block(joint->_body->_index[0], now->_index[0], 6, now->_ndof).noalias() = joint->_body->_A_ip * J.block(parent->_body->_index[0], now->_index[0], 6, now->_ndof);
                 Jdot.block(joint->_body->_index[0], now->_index[0], 6, now->_ndof).noalias() =
                     joint->_body->_A_ip_dot * J.block(parent->_body->_index[0], now->_index[0], 6, now->_ndof) +
                     joint->_body->_A_ip * Jdot.block(parent->_body->_index[0], now->_index[0], 6, now->_ndof);
+                // J.block(joint->_body->_index[0], now->_index[0], 6, now->_ndof) = joint->_body->_A_ij * tmp * now->_S_j;
+                // Jdot.block(joint->_body->_index[0], now->_index[0], 6, now->_ndof).noalias() =
+                //     joint->_body->_A_ij * tmp1 * now->_S_j
+                //     + joint->_body->_A_ij * tmp * now->_S_j_dot;
                 
                 for (int k = 0;k < joint->_ndof;k++) {
                     dJ_dq(joint->_index[k]).block(joint->_body->_index[0], now->_index[0], 6, now->_ndof).noalias() = 
@@ -645,10 +874,12 @@ void Robot::computeJointJacobianWithDerivative(MatrixX& J, MatrixX& Jdot, Jacobi
                             joint->_body->_A_ip_dot * dJ_dq(nex->_index[k]).block(parent->_body->_index[0], now->_index[0], 6, now->_ndof) + 
                             joint->_body->_A_ip * dJdot_dq(nex->_index[k]).block(parent->_body->_index[0], now->_index[0], 6, now->_ndof);
                     }
-                    if (nex == now)
+                    if (nex == now) // TODO: check correctness
                         break;
                 }
             }
+            // tmp1 = tmp1 * now->_A_jp - tmp * now->_A_inv * now->_Adot * now->_A_inv * math::Ad(now->_E_jp_0);
+            // tmp = tmp * now->_A_jp;
         }
     }
 }
@@ -864,9 +1095,130 @@ void Robot::computeJointJacobianWithDerivative(
     }
 }
 
+void Robot::computeJointJacobianProduct(const VectorX& x, VectorX& Jx) {
+    Jx = VectorX::Zero(_ndof_m);
+    for (auto joint : _joints) {
+        auto maximalIndexStart = joint->_body->_index[0];
+        if (joint->_ndof > 0)
+            Jx.segment(maximalIndexStart, 6) = joint->_body->_A_ij * joint->_S_j * x.segment(joint->_index[0], joint->_ndof);
+        Joint* parent = joint->_parent;
+        if (parent != nullptr) {
+            Jx.segment(maximalIndexStart, 6) += joint->_body->_A_ip * Jx.segment(parent->_body->_index[0], 6);
+        }
+    }
+}
+
+void Robot::computeJointJacobianDotProduct(const VectorX& x, VectorX& Jdotx) {
+    VectorX Jx = VectorX::Zero(_ndof_m);
+    Jdotx = VectorX::Zero(_ndof_m);
+    for (auto joint : _joints) {
+        auto maximalIndexStart = joint->_body->_index[0];
+        if (joint->_ndof > 0) {
+            Jx.segment(maximalIndexStart, 6) = joint->_body->_A_ij * joint->_S_j * x.segment(joint->_index[0], joint->_ndof);
+            Jdotx.segment(maximalIndexStart, 6) = joint->_body->_A_ij * joint->_S_j_dot * x.segment(joint->_index[0], joint->_ndof);
+        }
+        Joint* parent = joint->_parent;
+        if (parent != nullptr) {
+            Jx.segment(maximalIndexStart, 6) += joint->_body->_A_ip * Jx.segment(parent->_body->_index[0], 6);
+            Jdotx.segment(maximalIndexStart, 6) += joint->_body->_A_ip * Jdotx.segment(parent->_body->_index[0], 6)
+                                                    + joint->_body->_A_ip_dot * Jx.segment(parent->_body->_index[0], 6);
+        }
+    }
+}
+
+void Robot::computeJointJacobianTransposeProduct(const VectorX& y, VectorX& JTy) {
+    JTy = VectorX::Zero(_ndof_r);
+    VectorX alpha = VectorX::Zero(_ndof_m);
+    for (auto rit = _joints.rbegin();rit != _joints.rend();++rit) {
+        auto joint = *rit;
+        auto maximalIndexStart = joint->_body->_index[0];
+        Vector6 yi = y.segment(maximalIndexStart, 6);
+        for (auto child : joint->_children) {
+            yi += alpha.segment(child->_body->_index[0], 6);
+        }
+        alpha.segment(maximalIndexStart, 6) = joint->_body->_A_ip.transpose() * yi;
+        if (joint->_ndof > 0) {
+            JTy.segment(joint->_index[0], joint->_ndof) = joint->_S_j.transpose() * joint->_body->_A_ij.transpose() * yi;
+        }
+    }
+}
+
+// use finite difference to compute jacobian derivatives product
+void Robot::computeJointJacobianDerivativeProduct(const VectorX& x, MatrixX& dJdq_x) {
+    dJdq_x = MatrixX::Zero(_ndof_m, _ndof_r);
+    dtype eps = 1e-8;
+    VectorX Jx;
+    computeJointJacobianProduct(x, Jx);
+    VectorX q = get_q();
+    for (int i = 0;i < _ndof_r;++i) {
+        q(i) += eps;
+        set_q(q);
+        update();
+        VectorX Jx_pos;
+        computeJointJacobianProduct(x, Jx_pos);
+        q(i) -= 2. * eps;
+        set_q(q);
+        update();
+        VectorX Jx_neg;
+        computeJointJacobianProduct(x, Jx_neg);
+        dJdq_x.col(i) = (Jx_pos - Jx_neg) / 2. / eps;
+        q(i) += eps;
+    }
+    set_q(q);
+    update();
+}
+
+void Robot::computeJointJacobianDotDerivativeProduct(const VectorX& x, MatrixX& dJdotdq_x) {
+    dJdotdq_x = MatrixX::Zero(_ndof_m, _ndof_r);
+    dtype eps = 1e-8;
+    VectorX Jdotx;
+    computeJointJacobianDotProduct(x, Jdotx);
+    VectorX q = get_q();
+    for (int i = 0;i < _ndof_r;++i) {
+        q(i) += eps;
+        set_q(q);
+        update();
+        VectorX Jdotx_pos;
+        computeJointJacobianDotProduct(x, Jdotx_pos);
+        q(i) -= 2. * eps;
+        set_q(q);
+        update();
+        VectorX Jdotx_neg;
+        computeJointJacobianDotProduct(x, Jdotx_neg);
+        dJdotdq_x.col(i) = (Jdotx_pos - Jdotx_neg) / 2. / eps;
+        q(i) += eps;
+    }
+    set_q(q);
+    update();
+}
+
+void Robot::computeJointJacobianTransposeDerivativeProduct(const VectorX& x, MatrixX& dJTdq_x) {
+    dJTdq_x = MatrixX::Zero(_ndof_r, _ndof_r);
+    dtype eps = 1e-8;
+    VectorX JTx;
+    computeJointJacobianTransposeProduct(x, JTx);
+    VectorX q = get_q();
+    for (int i = 0;i < _ndof_r;++i) {
+        q(i) += eps;
+        set_q(q);
+        update();
+        VectorX JTx_pos;
+        computeJointJacobianTransposeProduct(x, JTx_pos);
+        q(i) -= 2. * eps;
+        set_q(q);
+        update();
+        VectorX JTx_neg;
+        computeJointJacobianTransposeProduct(x, JTx_neg);
+        dJTdq_x.col(i) = (JTx_pos - JTx_neg) / 2. / eps;
+        q(i) += eps;
+    }
+    set_q(q);
+    update();
+}
+
 void Robot::compute_dfdu(MatrixX& dfm_du, MatrixX& dfr_du) {
-    dfm_du = MatrixX::Zero(_ndof_m, _ndof_u);
-    dfr_du = MatrixX::Zero(_ndof_r, _ndof_u);
+    dfm_du.setZero();
+    dfr_du.setZero();
     for (auto actuator : _actuators) {
         actuator->compute_dfdu(dfm_du, dfr_du);
     }
@@ -896,6 +1248,35 @@ void Robot::computeVariablesWithDerivative(VectorX& variables, MatrixX& dvar_dq,
     }
 }
 
+void Robot::computeTactileWithDerivatives(VectorX& tactile_force, MatrixX& dtactile_dqm, MatrixX& dtactile_dphi, std::vector<std::pair<Body*, Body*>>& contact_bodies) {
+    tactile_force = VectorX::Zero(_ndof_tactile);
+    dtactile_dqm = MatrixX::Zero(_ndof_tactile, 12);
+    dtactile_dphi = MatrixX::Zero(_ndof_tactile, 12);
+    contact_bodies.clear();
+    int offset = 0;
+    for (auto tactile_sensor : _tactile_sensors) {
+        MatrixX dtactile_dqm_i, dtactile_dphi_i;
+        tactile_sensor->compute_tactile_values_with_derivatives(dtactile_dqm_i, dtactile_dphi_i);
+        dtactile_dqm.middleRows(offset, tactile_sensor->_normal_force.size() * 3) = dtactile_dqm_i;
+        dtactile_dphi.middleRows(offset, tactile_sensor->_normal_force.size() * 3) = dtactile_dphi_i;
+
+        for (int i = 0;i < tactile_sensor->_contact_body.size();++i)
+            contact_bodies.push_back(make_pair(tactile_sensor->_body, tactile_sensor->_contact_body[i]));
+        for (int i = 0;i < tactile_sensor->_tactile_force.size();++i)
+            tactile_force.segment(offset + i * 3, 3) = tactile_sensor->_tactile_force[i];
+        offset += 3 * tactile_sensor->_normal_force.size();
+    }
+}
+
+void Robot::computeExtraDerivative(MatrixX& dfr_dqprev, MatrixX& dfr_dqdotprev) {
+    MatrixX dfm_dqprev, dfm_dqdotprev;
+    dfr_dqprev.setZero();
+    dfr_dqdotprev.setZero();
+    for (auto actuator : _actuators) {
+        actuator->compute_extra_derivatives(dfm_dqprev, dfm_dqdotprev, dfr_dqprev, dfr_dqdotprev);
+    }
+}
+
 void Robot::test_derivatives_runtime() {
     for (Joint* joint : _joints) {
         joint->test_derivatives_runtime();
@@ -909,15 +1290,19 @@ void Robot::test_derivatives_runtime() {
         force->test_derivatives_runtime();
     }
 
-    VectorX fm, fr;
-    MatrixX Km, Dm, Kr, Dr;
+    for (TactileSensor* sensor : _tactile_sensors) {
+        sensor->test_derivatives_runtime();
+    }
+
+    VectorX fm = VectorX::Zero(_ndof_m), fr = VectorX::Zero(_ndof_r);
+    MatrixX Km = MatrixX::Zero(_ndof_m, _ndof_m), Dm = MatrixX::Zero(_ndof_m, _ndof_m), Kr = MatrixX::Zero(_ndof_r, _ndof_r), Dr = MatrixX::Zero(_ndof_r, _ndof_r);
     computeForceWithDerivative(fm, fr, Km, Dm, Kr, Dr, true);
 
-    MatrixX J, Jdot;
-    JacobianMatrixVector dJ_dq, dJdot_dq;
+    MatrixX J = MatrixX::Zero(_ndof_m, _ndof_r), Jdot = MatrixX::Zero(_ndof_m, _ndof_r);
+    JacobianMatrixVector dJ_dq(_ndof_m, _ndof_r, _ndof_r), dJdot_dq(_ndof_m, _ndof_r, _ndof_r);
     computeJointJacobianWithDerivative(J, Jdot, dJ_dq, dJdot_dq);
 
-    MatrixX dfm_du, dfr_du;
+    MatrixX dfm_du(_ndof_m, _ndof_u), dfr_du(_ndof_r, _ndof_u);
     compute_dfdu(dfm_du, dfr_du);
 
     VectorX variables;
@@ -947,13 +1332,13 @@ void Robot::test_derivatives_runtime() {
             set_q(q_pos);
             update();
 
-            VectorX fm_pos, fr_pos;
+            VectorX fm_pos = VectorX::Zero(_ndof_m), fr_pos = VectorX::Zero(_ndof_r);
             computeForce(fm_pos, fr_pos);
 
-            MatrixX J_pos, Jdot_pos;
+            MatrixX J_pos = MatrixX::Zero(_ndof_m, _ndof_r), Jdot_pos = MatrixX::Zero(_ndof_m, _ndof_r);
             computeJointJacobian(J_pos, Jdot_pos);
 
-            VectorX variables_pos;
+            VectorX variables_pos = VectorX::Zero(_ndof_var);
             computeVariables(variables_pos);
 
             Kr_fd.col(k) = (fr_pos - fr) / h;
@@ -978,7 +1363,7 @@ void Robot::test_derivatives_runtime() {
             set_qdot(qdot_pos);
             update();
 
-            VectorX fm_pos, fr_pos;
+            VectorX fm_pos = VectorX::Zero(_ndof_m), fr_pos = VectorX::Zero(_ndof_r);
             computeForce(fm_pos, fr_pos);
 
             Dr_fd.col(k) = (fr_pos - fr) / h;
@@ -998,7 +1383,7 @@ void Robot::test_derivatives_runtime() {
             dq[k % 6] = h;
             Matrix4 E_pos = E * math::exp(dq);
             _bodies[body_idx]->_E_0i = E_pos;
-            VectorX fm_pos, fr_pos;
+            VectorX fm_pos = VectorX::Zero(_ndof_m), fr_pos = VectorX::Zero(_ndof_r);
             computeForce(fm_pos, fr_pos);
             Km_fd.col(k) = (fm_pos - fm) / h;
             _bodies[body_idx]->_E_0i = E;
@@ -1014,7 +1399,7 @@ void Robot::test_derivatives_runtime() {
             Vector6 phi_pos = phi;
             phi_pos[k % 6] += h;
             _bodies[body_idx]->_phi = phi_pos;
-            VectorX fm_pos, fr_pos;
+            VectorX fm_pos = VectorX::Zero(_ndof_m), fr_pos = VectorX::Zero(_ndof_r);
             computeForce(fm_pos, fr_pos);
             Dm_fd.col(k) = (fm_pos - fm) / h;
             _bodies[body_idx]->_phi = phi;
@@ -1028,7 +1413,7 @@ void Robot::test_derivatives_runtime() {
             VectorX u_pos = u;
             u_pos[k] += h;
             set_u(u_pos);
-            VectorX fm_pos, fr_pos;
+            VectorX fm_pos = VectorX::Zero(_ndof_m), fr_pos = VectorX::Zero(_ndof_r);
             computeForce(fm_pos, fr_pos);
             dfm_du_fd.col(k) = (fm_pos - fm) / h;
             dfr_du_fd.col(k) = (fr_pos - fr) / h;
@@ -1335,6 +1720,14 @@ void Robot::get_rendering_objects(
 
     for (VirtualObject* virtual_object : _virtual_objects) {
         virtual_object->get_rendering_objects(vertex_list, face_list, option_list, animator_list);
+    }
+
+    for (TactileSensor* tactile_sensor : _tactile_sensors) {
+        tactile_sensor->get_rendering_objects(vertex_list, face_list, option_list, animator_list);
+    }
+
+    for (Force* force : _forces) {
+        force->get_rendering_objects(vertex_list, face_list, option_list, animator_list);
     }
 }
 

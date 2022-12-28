@@ -15,6 +15,12 @@ public:
     void inner_update();
     
     bool reparam();
+
+private:
+    // auxilary variables
+    Matrix3 A[3], B[3], C[3], Adot[3], Bdot[3], Cdot[3];
+    RowVector3 dd_dq, dddot_dq;
+    JacobianMatrixVector dA_dq[3], dB_dq[3], dC_dq[3], dAdot_dq[3], dBdot_dq[3], dCdot_dq[3];
 };
 
 }

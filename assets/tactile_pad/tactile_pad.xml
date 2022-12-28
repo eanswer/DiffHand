@@ -1,0 +1,36 @@
+<redmax model="tactile-pad">
+    <option integrator="BDF2" timestep="5e-3" unit="m-kg" gravity="0. 0. -9.8"/>
+    
+    <ground pos="0 0 0" normal="0 0 1"/>
+    <default>
+        <general_primitive_contact kn="5" kt="1" mu="1.0" damping="1"/>
+        <tactile kn="1" kt="0.01" mu="2." damping="0.003"/>
+    </default>
+
+    <robot>
+        <link name="pad">
+            <joint name="pad_joint" type="translational" pos="0 0 0.06" quat="1 0 0 0" damping="1"/>
+            <body name="pad_body" type="cuboid" size="0.05 0.05 0.01" pos="0 0 0" quat="1 0 0 0" density="1000." rgba="0.3 0.3 0.3 1" general_contact_resolution="20 20 20"/>
+        </link>
+    </robot>
+
+    <robot>
+        <link name="object">
+            <joint name="object_joint" type="free3d-exp" pos="0. 0. 0.02" quat="1 0 0 0"/>
+            <body name="object" type="sphere" pos="0 0 0" radius="0.02" quat="1 0 0 0" density="1.0" rgba="0.7 0.7 0.7 1" texture="resources/textures/sphere.jpg"/>
+        </link>
+    </robot>
+
+    <actuator>
+        <motor joint="pad_joint" ctrl="force" ctrl_range="-1 1"/>
+    </actuator>
+
+    <sensor>
+        <tactile body="pad_body" name="pad" type="rect_array" rect_pos0="-0.025 0.025 -0.005" rect_pos1="0.025 -0.025 -0.005" axis0="0 -1 0" axis1="1 0 0" resolution="200 200"/> 
+    </sensor>
+
+    <contact>
+        <ground_contact body="object" kn="5e3" kt="1" mu="0.8" damping="0.03"/>
+        <general_primitive_contact general_body="pad_body" primitive_body="object"/>
+    </contact>
+</redmax>

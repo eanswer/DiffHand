@@ -149,6 +149,40 @@ namespace math {
         return Eigen::Quaternion<dtype>(w, x, y, z).toRotationMatrix();
     }
 
+    inline Vector4 mat2quat(Matrix3 mat) {
+        // reference: https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
+        Vector4 quat;
+        dtype trace = mat.trace();
+        if( trace > 0 ) {// I changed M_EPSILON to 0
+            dtype s = 0.5 / sqrt(trace + 1.0);
+            quat(0) = 0.25 / s;
+            quat(1) = (mat(2, 1) - mat(1, 2)) * s;
+            quat(2) = (mat(0, 2) - mat(2, 0)) * s;
+            quat(3) = (mat(1, 0) - mat(0, 1)) * s;
+        } else {
+            if (mat(0, 0) > mat(1, 1) && mat(0, 0) > mat(2, 2)) {
+                dtype s = 2.0 * sqrt(1.0 + mat(0, 0) - mat(1, 1) - mat(2, 2));
+                quat(0) = (mat(2, 1) - mat(1, 2)) / s;
+                quat(1) = 0.25 * s;
+                quat(2) = (mat(0, 1) + mat(1, 0)) / s;
+                quat(3) = (mat(0, 2) + mat(2, 0)) / s;
+                } else if (mat(1, 1) > mat(2, 2)) {
+                    dtype s = 2.0 * sqrt(1.0f + mat(1, 1) - mat(0, 0) - mat(2, 2));
+                    quat(0) = (mat(0, 2) - mat(2, 0)) / s;
+                    quat(1) = (mat(0, 1) + mat(1, 0)) / s;
+                    quat(2) = 0.25 * s;
+                    quat(3) = (mat(1, 2) + mat(2, 1)) / s;
+                } else {
+                    float s = 2.0 * sqrt(1.0 + mat(2, 2) - mat(0, 0) - mat(1, 1));
+                    quat(0) = (mat(1, 0) - mat(0, 1)) / s;
+                    quat(1) = (mat(0, 2) + mat(2, 0)) / s;
+                    quat(2) = (mat(1, 2) + mat(2, 1)) / s;
+                    quat(3) = 0.25 * s;
+                }
+        }
+        return quat;
+    }
+
     inline VectorX flatten_R(Matrix3 R) {
         VectorX flat_R = VectorX::Zero(9);
         for (int i = 0;i < 3;i++)
@@ -344,6 +378,68 @@ inline std::string directory_of(const std::string& fname)
      return (std::string::npos == pos)
          ? ""
          : fname.substr(0, pos);
+}
+
+// map value from [min1, max1] to [min2, max2]
+inline VectorX map_value(const VectorX& value, const VectorX& min1, const VectorX& max1, const VectorX& min2, const VectorX& max2) {
+    return (value - min1).cwiseProduct((max1 - min1).cwiseInverse()).cwiseProduct(max2 - min2) + min2;
+}
+
+inline VectorX str_to_eigen(std::string str) {
+    std::stringstream iss(str);
+
+    dtype value;
+    std::vector<dtype> values;
+    while (iss >> value) {
+        values.push_back(value);
+    }
+
+    VectorX vec(values.size());
+    for (int i = 0;i < values.size();i++)
+        vec(i) = values[i];
+    
+    return vec;
+}
+
+inline VectorXi str_to_eigen_int(std::string str) {
+    std::stringstream iss(str);
+
+    int value;
+    std::vector<int> values;
+    while (iss >> value) {
+        values.push_back(value);
+    }
+
+    VectorXi vec(values.size());
+    for (int i = 0;i < values.size();i++)
+        vec(i) = values[i];
+    
+    return vec;
+}
+
+inline void merge_meshes(std::vector<Matrix3Xf> &vertices, std::vector<Matrix3Xi> &faces, 
+                            Matrix3Xf &merged_vertices, Matrix3Xi & merged_faces) {
+    
+    assert(vertices.size() == faces.size());
+    
+    int total_vertices = 0, total_faces = 0;
+    for (int i = 0;i < vertices.size();++i) {
+        total_vertices += vertices[i].cols();
+        total_faces += faces[i].cols();
+    }
+
+    merged_vertices.resize(3, total_vertices);
+    merged_faces.resize(3, total_faces);
+
+    int vertices_offset = 0, faces_offset = 0;
+    for (int i = 0;i < vertices.size();++i) {
+        for (int j = 0;j < vertices[i].cols();++j)
+            merged_vertices.col(vertices_offset + j) = vertices[i].col(j);
+        for (int j = 0;j < faces[i].cols();++j)
+            merged_faces.col(faces_offset + j) = faces[i].col(j) + Vector3i::Constant(vertices_offset);
+        vertices_offset += vertices[i].cols();
+        faces_offset += faces[i].cols();
+    }
 }
 
 }

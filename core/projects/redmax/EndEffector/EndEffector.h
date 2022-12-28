@@ -19,6 +19,8 @@ public:
 // EndEffector is defined as local position in joint frame, and the observation value is the position in world frame.
 class EndEffector {
 public:
+    std::string _name = "";
+
     // structure
     Joint* _joint;
 
@@ -30,6 +32,8 @@ public:
     std::vector<int> _index;        // the indices in the variable vector
 
     // rendering
+    Matrix3Xf _rendering_vertices;
+    Matrix3Xi _rendering_faces;
     Vector3f _color;
     dtype _radius;
 
@@ -45,6 +49,8 @@ public:
     void computeVariablesWithDerivative(VectorX& variables, MatrixX& dvar_dq);
     void computeVariablesWithDerivative(VectorX& variables, MatrixX& dvar_dq, MatrixX& dvar_dp);
 
+    void update_position(Vector3 position);
+    
     // rendering
     void get_rendering_objects(
         std::vector<Matrix3Xf>& vertex_list, 

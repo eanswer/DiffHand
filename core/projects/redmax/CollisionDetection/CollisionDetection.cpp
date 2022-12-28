@@ -67,11 +67,6 @@ void collision_detection_general_primitive(const Body* contact_body, const Body*
     if (dynamic_cast<BodyPrimitiveShape*>(const_cast<Body*>(primitive_body)) != nullptr) {
         BodyPrimitiveShape* primitive_body_ = dynamic_cast<BodyPrimitiveShape*>(const_cast<Body*>(primitive_body));
         std::vector<Vector3> contact_points = contact_body->get_contact_points();
-        
-        if (dynamic_cast<BodyCuboid*>(const_cast<Body*>(contact_body)) != nullptr) {
-            BodyCuboid* cuboid_body_ = dynamic_cast<BodyCuboid*>(const_cast<Body*>(contact_body));
-            contact_points = cuboid_body_->get_general_contact_points();
-        }
 
         Matrix4 E_w1 = contact_body->_E_0i;
         

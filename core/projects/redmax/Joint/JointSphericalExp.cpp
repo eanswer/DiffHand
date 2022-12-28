@@ -6,6 +6,15 @@ namespace redmax {
 JointSphericalExp::JointSphericalExp(
     Simulation *sim, int id, Joint * parent, Matrix3 R_pj_0, Vector3 p_pj_0, Joint::Frame frame) 
     : Joint(sim, id, parent, R_pj_0, p_pj_0, 3, frame) {
+
+    for (int i = 0;i < 3;i++) {
+        dA_dq[i] = JacobianMatrixVector(3, 3, 3);
+        dB_dq[i] = JacobianMatrixVector(3, 3, 3);
+        dC_dq[i] = JacobianMatrixVector(3, 3, 3);
+        dAdot_dq[i] = JacobianMatrixVector(3, 3, 3);
+        dBdot_dq[i] = JacobianMatrixVector(3, 3, 3);
+        dCdot_dq[i] = JacobianMatrixVector(3, 3, 3);
+    }
 }
 
 /* follow overleaf notes
@@ -47,7 +56,7 @@ void JointSphericalExp::update(bool design_gradient) {
         _Adot.topLeftCorner(3, 3) = Rdot; _Adot.bottomRightCorner(3, 3) = Rdot;
 
         _dSj_dq.setZero();
-        for (int j = 0;j < 3;j++)
+        for (int j = 0;j < 3;j++) // TODO: problematic
             for (int k = 0;k < 3;k++)
                 _dSj_dq(k).col(j).head(3) = math::unskew(math::skew(e[k]).transpose() * math::skew(e[j]));
 
@@ -71,17 +80,17 @@ void JointSphericalExp::update(bool design_gradient) {
 
         // compute components
         dtype d, ddot;
-        Matrix3 A[3], B[3], C[3], Adot[3], Bdot[3], Cdot[3];
-        RowVector3 dd_dq, dddot_dq;
-        JacobianMatrixVector dA_dq[3], dB_dq[3], dC_dq[3], dAdot_dq[3], dBdot_dq[3], dCdot_dq[3];
-        for (int i = 0;i < 3;i++) {
-            dA_dq[i] = JacobianMatrixVector(3, 3, 3);
-            dB_dq[i] = JacobianMatrixVector(3, 3, 3);
-            dC_dq[i] = JacobianMatrixVector(3, 3, 3);
-            dAdot_dq[i] = JacobianMatrixVector(3, 3, 3);
-            dBdot_dq[i] = JacobianMatrixVector(3, 3, 3);
-            dCdot_dq[i] = JacobianMatrixVector(3, 3, 3);
-        }
+        // Matrix3 A[3], B[3], C[3], Adot[3], Bdot[3], Cdot[3];
+        // RowVector3 dd_dq, dddot_dq;
+        // JacobianMatrixVector dA_dq[3], dB_dq[3], dC_dq[3], dAdot_dq[3], dBdot_dq[3], dCdot_dq[3];
+        // for (int i = 0;i < 3;i++) {
+        //     dA_dq[i] = JacobianMatrixVector(3, 3, 3);
+        //     dB_dq[i] = JacobianMatrixVector(3, 3, 3);
+        //     dC_dq[i] = JacobianMatrixVector(3, 3, 3);
+        //     dAdot_dq[i] = JacobianMatrixVector(3, 3, 3);
+        //     dBdot_dq[i] = JacobianMatrixVector(3, 3, 3);
+        //     dCdot_dq[i] = JacobianMatrixVector(3, 3, 3);
+        // }
         
         // compute d, A, B, C
         d = 1. / q2norm;
@@ -147,16 +156,17 @@ void JointSphericalExp::update(bool design_gradient) {
         }
 
         // compute our required values and their derivatives
+
+        _A.setZero(); 
+        _A.topLeftCorner(3, 3) = R; _A.bottomRightCorner(3, 3) = R;
+
+        _Adot.setZero();
+        _Adot.topLeftCorner(3, 3) = Rdot; _Adot.bottomRightCorner(3, 3) = Rdot;
+
         _S_j.setZero();
         for (int j = 0;j < 3;j++) {
             _S_j.col(j).head(3) = math::unskew(R.transpose() * dR_dq(j));
             _S_j_dot.col(j).head(3) = math::unskew(Rdot.transpose() * A[j] * R + R.transpose() * Adot[j] * R + R.transpose() * A[j] * Rdot);
-
-            _A.setZero(); 
-            _A.topLeftCorner(3, 3) = R; _A.bottomRightCorner(3, 3) = R;
-
-            _Adot.setZero();
-            _Adot.topLeftCorner(3, 3) = Rdot; _Adot.bottomRightCorner(3, 3) = Rdot;
 
             // derivatives
             for (int k = 0;k < 3;k++) {

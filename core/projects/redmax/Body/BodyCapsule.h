@@ -3,15 +3,23 @@
 
 namespace redmax {
 
-class BodySphere : public BodyPrimitiveShape {
+class BodyCapsule : public BodyPrimitiveShape {
 public:
+    dtype _length;
     dtype _radius;
+    Vector2i _general_contact_resolution;
+    // std::vector<Vector3> _general_contact_points;
 
-    BodySphere(Simulation *sim, Joint *joint, dtype radius, 
-                Matrix3 R_ji, Vector3 p_ji,
-                dtype density);
+    BodyCapsule(Simulation *sim, Joint *joint, dtype length, dtype radius, 
+                Matrix3 R_ji, Vector3 p_ji, dtype density,
+                Vector2i general_contact_resolution = Vector2i(5, 4));
 
     void computeMassMatrix();
+
+    // contact candidate points
+    void precompute_contact_points();
+    // void precompute_general_contact_points();
+    // std::vector<Vector3> get_general_contact_points() { return _general_contact_points; }
 
     // rendering
     void get_rendering_objects(
@@ -19,8 +27,6 @@ public:
         std::vector<Matrix3Xi>& face_list,
         std::vector<opengl_viewer::Option>& option_list,
         std::vector<opengl_viewer::Animator*>& animator_list);
-
-    // contact related
 
     /**
      * analytical distance function
@@ -48,10 +54,10 @@ public:
      * analytical distance function return dist, normal, x2i, ddot, tdot and derivatives
      * @return
      * dist: the distance of xw
-     * normal: the normalized contact normal
+     * normal: the normalized contact normal in world frame
      * xi2: the contact position on this body
      * ddot: the magnitude of the velocity on normal direction
-     * tdot: the tangential velocity
+     * tdot: the tangential velocity in world frame
      * derivatives
      **/
     void collision(Vector3 xw, Vector3 xw_dot, /* input */
@@ -67,8 +73,10 @@ public:
                     Matrix3 &dxi2_dxw, Matrix36 &dxi2_dq2 /* derivatives for xi2 */);
 
     void update_density(dtype density);
+    // void update_size(VectorX body_size);
     
     void test_collision_derivatives();
+    // void test_collision_derivatives_runtime(Vector3 xw, Vector3 xw_dot);
 };
 
 }

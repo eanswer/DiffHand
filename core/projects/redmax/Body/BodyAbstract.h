@@ -16,10 +16,12 @@ public:
 
     BodyAbstract(Simulation* sim, Joint* joint, 
         Matrix3 R_ji, Vector3 p_ji,
-        dtype mass, Vector3 Inertia,
-        std::string rendering_mesh_filename = "");
+        dtype mass, VectorX Inertia,
+        std::string visual_mesh_filename = "", Matrix3 visual_frame_R = Matrix3::Identity(), Vector3 visual_frame_pos = Vector3::Zero(), 
+        std::vector<Vector3> collision_points = std::vector<Vector3>(), Matrix3 collision_frame_R = Matrix3::Identity(), Vector3 collision_frame_pos = Vector3::Zero(),
+        Vector3 scale = Vector3::Ones());
     
-    void load_mesh(std::string filename);
+    void load_visual_mesh(std::string filename);
 
     void set_rendering_mesh_vertices(const Matrix3X V);
     void set_rendering_mesh(const Matrix3X V, const Matrix3Xi F);

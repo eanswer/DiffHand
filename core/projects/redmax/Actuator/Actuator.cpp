@@ -2,16 +2,19 @@
 
 namespace redmax {
 
-Actuator::Actuator(int ndof, VectorX ctrl_min, VectorX ctrl_max, std::string name) {
+Actuator::Actuator(std::string name, int ndof, VectorX ctrl_min, VectorX ctrl_max) {
     _name = name;
     _ndof = ndof;
     _ctrl_min = ctrl_min;
     _ctrl_max = ctrl_max;
     _index.clear();
     _u = VectorX::Zero(_ndof);
+    _dofs = VectorX::Zero(_ndof);
+    _dofs_vel = VectorX::Zero(_ndof);
+    _fr = VectorX::Zero(_ndof);
 }
 
-Actuator::Actuator(int ndof, dtype ctrl_min, dtype ctrl_max, std::string name) {
+Actuator::Actuator(std::string name, int ndof, dtype ctrl_min, dtype ctrl_max) {
     _name = name;
     _ndof = ndof;
     _ctrl_min = VectorX(ndof);
@@ -22,6 +25,8 @@ Actuator::Actuator(int ndof, dtype ctrl_min, dtype ctrl_max, std::string name) {
     }
     _index.clear();
     _u = VectorX::Zero(_ndof);
+    _dofs = VectorX::Zero(_ndof);
+    _dofs_vel = VectorX::Zero(_ndof);
 }
 
 void Actuator::get_ctrl_range(VectorX& ctrl_min, VectorX& ctrl_max) {

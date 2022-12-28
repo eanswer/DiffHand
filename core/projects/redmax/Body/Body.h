@@ -68,6 +68,8 @@ public:
     MatrixX _dphi_dp1, _dphi_dp2;
 
     // rendering
+    Matrix3Xf _rendering_vertices;
+    Matrix3Xi _rendering_faces;
     Vector3f _color;
     std::string _texture_path;
     bool _use_texture;
@@ -122,7 +124,10 @@ public:
         std::vector<Matrix3Xi>& face_list,
         std::vector<opengl_viewer::Option>& option_list,
         std::vector<opengl_viewer::Animator*>& animator_list) {};
-        
+
+    // update parameters
+    virtual void update_density(dtype density) {};
+    virtual void update_size(VectorX body_size) {};
 protected:
     BodyAnimator* _animator;
 

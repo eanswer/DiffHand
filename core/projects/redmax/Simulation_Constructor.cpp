@@ -7,9 +7,11 @@
 #include "Body/Body.h"
 #include "Joint/Joint.h"
 #include "Body/BodyCuboid.h"
+#include "Body/BodyCylinder.h"
 #include "Body/BodyMeshObj.h"
 #include "Body/BodySphere.h"
 #include "Body/BodyAbstract.h"
+#include "Body/BodyCapsule.h"
 #include "Joint/JointFixed.h"
 #include "Joint/JointRevolute.h"
 #include "Joint/JointPrismatic.h"
@@ -17,6 +19,9 @@
 #include "Joint/JointFree3DEuler.h"
 #include "Joint/JointFree3DExp.h"
 #include "Joint/JointPlanar.h"
+#include "Sensor/TactileSensor.h"
+#include "Sensor/TactileSensorRectArray.h"
+#include "Sensor/TactileSensorAbstract.h"
 #include "Force/ForceGroundContact.h"
 #include "Force/ForceCuboidCuboidContact.h"
 #include "Force/ForceGeneralPrimitiveContact.h"
@@ -24,27 +29,12 @@
 #include "Actuator/ActuatorMotor.h"
 #include "EndEffector/EndEffector.h"
 #include "VirtualObject/VirtualObjectSphere.h"
+#include "VirtualObject/VirtualObjectCuboid.h"
 #include "SimViewer.h"
 #include "Utils.h"
 #include "Common.h"
 
 namespace redmax {
-
-VectorX Simulation::str_to_eigen(std::string str) {
-    std::stringstream iss(str);
-
-    dtype value;
-    std::vector<dtype> values;
-    while (iss >> value) {
-        values.push_back(value);
-    }
-
-    VectorX vec(values.size());
-    for (int i = 0;i < values.size();i++)
-        vec(i) = values[i];
-    
-    return vec;
-}
 
 std::vector<Vector3> Simulation::parse_contact_points(std::string str) {
     std::vector<Vector3> contacts; 
@@ -67,10 +57,12 @@ Simulation::Simulation(Simulation::Options *options, std::string name):
     _name = name;
     _robot = NULL;
     _viewer_options = new ViewerOptions();
+    _solver_options = new SolverOptions();
 }
 
 Simulation::Simulation(Simulation::Options *options, Simulation::ViewerOptions *viewer_options, std::string name): 
     _options(options), _viewer_options(viewer_options), _viewer(nullptr) {
+    _solver_options = new SolverOptions();    
     _name = name;
     _robot = NULL;
 }
@@ -118,7 +110,24 @@ Joint* Simulation::parse_from_xml_file(pugi::xml_node root, pugi::xml_node node,
             if (option_node.attribute("integrator")) {
                 this->_options->_integrator = option_node.attribute("integrator").value();
             }
+            if (option_node.attribute("unit")) {
+                this->_options->_unit = option_node.attribute("unit").value();
+            }
         }
+        this->_solver_options = new SolverOptions();
+        if (node.child("solver_option")) {
+            pugi::xml_node solver_option_node = node.child("solver_option");
+            if (solver_option_node.attribute("tol")) {
+                this->_solver_options->_tol = (dtype)solver_option_node.attribute("tol").as_double();
+            }
+            if (solver_option_node.attribute("max_iter")) {
+                this->_solver_options->_MaxIter_Newton = solver_option_node.attribute("max_iter").as_int();
+            }
+            if (solver_option_node.attribute("max_ls")) {
+                this->_solver_options->_MaxIter_LS = solver_option_node.attribute("max_ls").as_int();
+            }
+        }
+
         // viewer options
         this->_viewer_options = new ViewerOptions();
         // parse ground
@@ -139,16 +148,26 @@ Joint* Simulation::parse_from_xml_file(pugi::xml_node root, pugi::xml_node node,
             this->_E_g.block(0, 1, 3, 1) = ny;
             this->_E_g.block(0, 2, 3, 1) = nz;
             this->_viewer_options->_E_g = this->_E_g;
-            this->_viewer_options->_E_g.topRightCorner(3, 1) /= 10.; // scale for better visualization
+            if (this->_options->_unit == "cm-g")
+                this->_viewer_options->_E_g.topRightCorner(3, 1) /= 10.; // scale for better visualization
+            else
+                this->_viewer_options->_E_g.topRightCorner(3, 1) *= 10.; // scale for better visualization
         }
         this->_E_g = this->_viewer_options->_E_g;
-        this->_E_g.topRightCorner(3, 1) *= 10.;
+        if (this->_options->_unit == "cm-g")
+            this->_E_g.topRightCorner(3, 1) *= 10.;
+        else
+            this->_E_g.topRightCorner(3, 1) /= 10.;
 
         // robot
         Robot* robot = new Robot();
+        this->addRobot(robot);
+
         for (auto child : node.children())
             if ((std::string)(child.name()) == "robot") {
-                robot->_root_joints.push_back(parse_from_xml_file(root, child, parent_joint, joint_cnt, verbose));
+                for (auto root_node : child.children())
+                    if ((std::string)(root_node.name()) == "link")
+                        robot->_root_joints.push_back(parse_from_xml_file(root, root_node, parent_joint, joint_cnt, verbose));
             }
 
         // parse actuator
@@ -161,11 +180,103 @@ Joint* Simulation::parse_from_xml_file(pugi::xml_node root, pugi::xml_node node,
                             std::string error_msg = "Actuator joint name error: " + (std::string)(child.attribute("joint").value());
                             throw_error(error_msg);
                         }
-                        std::string type = child.attribute("ctrl").value() ;
+
+                        Vector2 ctrl_range(INT_MIN, INT_MAX);
+                        if (child.attribute("ctrl_range"))
+                            ctrl_range = str_to_eigen(child.attribute("ctrl_range").value());
+                        else if (root.child("default").child(child.name()).attribute("ctrl_range"))
+                            ctrl_range = str_to_eigen(root.child("default").child(child.name()).attribute("ctrl_range").value());
+                            
+                        std::string type = child.attribute("ctrl").value();
                         if (type == "force") {
-                            Vector2 ctrl_range = str_to_eigen(child.attribute("ctrl_range").value());
-                            Actuator* actuator = new ActuatorMotor(it->second, ctrl_range(0), ctrl_range(1), it->first + "-motor-force");
+                            Actuator* actuator = new ActuatorMotor(it->first + "-motor-force", it->second, ActuatorMotor::ControlMode::FORCE, 
+                                                                    ctrl_range(0), ctrl_range(1));
                             robot->add_actuator(actuator);
+                        } else if (type == "position") {
+                            dtype ctrl_P = 0.0;
+                            if (child.attribute("P"))
+                                ctrl_P = (dtype)child.attribute("P").as_float();
+                            else
+                                ctrl_P = (dtype)root.child("default").child(child.name()).attribute("P").as_float();
+                            dtype ctrl_D = 0.0;
+                            if (child.attribute("D"))
+                                ctrl_D = (dtype)child.attribute("D").as_float();
+                            else
+                                ctrl_D = (dtype)root.child("default").child(child.name()).attribute("D").as_float();
+                            Actuator* actuator = new ActuatorMotor(it->first + "-motor-position", it->second, ActuatorMotor::ControlMode::POS,
+                                                                    ctrl_range(0), ctrl_range(1), ctrl_P, ctrl_D);
+                            robot->add_actuator(actuator);
+                        }
+                    }
+                }
+            }
+
+        // parse sensor
+        for (auto actuator : node.children())
+            if ((std::string)(actuator.name()) == "sensor") {
+                for (auto child : actuator.children()) {
+                    if ((std::string)(child.name()) == "tactile") {
+                        auto it = _body_map.find(child.attribute("body").value());
+                        if (it == _body_map.end()) {
+                            std::string error_msg = "Tactile body name error: " + (std::string)(child.attribute("body").value());
+                            throw_error(error_msg);
+                        }
+                        std::string type = child.attribute("type").value();
+                        std::string name = child.attribute("name").value();
+
+                        // parse kn, kt, mu, damping
+                        dtype kn = 0.;
+                        if (child.attribute("kn")) {
+                            kn = (dtype)(child.attribute("kn").as_float());
+                        } else if (root.child("default").child(child.name()).attribute("kn")) {
+                            kn = (dtype)(root.child("default").child(child.name()).attribute("kn").as_float());
+                        }
+                        dtype kt = 0.;
+                        if (child.attribute("kt")) {
+                            kt = (dtype)(child.attribute("kt").as_float());
+                        } else if (root.child("default").child(child.name()).attribute("kt")) {
+                            kt = (dtype)(root.child("default").child(child.name()).attribute("kt").as_float());
+                        }
+                        dtype mu = 0.;
+                        if (child.attribute("mu")) {
+                            mu = (dtype)(child.attribute("mu").as_float());
+                        } else if (root.child("default").child(child.name()).attribute("mu")) {
+                            mu = (dtype)(root.child("default").child(child.name()).attribute("mu").as_float());
+                        }
+                        dtype damping = 0.;
+                        if (child.attribute("damping")) {
+                            damping = (dtype)(child.attribute("damping").as_float());
+                        } else if (root.child("default").child(child.name()).attribute("damping")) {
+                            damping = (dtype)(root.child("default").child(child.name()).attribute("damping").as_float());
+                        }
+
+                        bool render = false;
+                        if (child.attribute("render")) {
+                            std::string render_str = child.attribute("render").value();
+                            if (render_str == "true" || render_str == "True") {
+                                render = true;
+                            } else {
+                                render = false;
+                            }
+                        }
+
+                        if (type == "rect_array") {
+                            Vector3 rect_pos0 = str_to_eigen(child.attribute("rect_pos0").value());
+                            Vector3 rect_pos1 = str_to_eigen(child.attribute("rect_pos1").value());
+                            Vector3 axis0 = str_to_eigen(child.attribute("axis0").value());
+                            Vector3 axis1 = str_to_eigen(child.attribute("axis1").value());
+                            Vector2i resolution = str_to_eigen_int(child.attribute("resolution").value());
+                            TactileSensor* tactile = new TactileSensorRectArray(_robot, it->second, name, rect_pos0, rect_pos1, axis0, axis1, resolution, kn, kt, mu, damping, render);
+                            _robot->add_tactile_sensor(tactile);
+                        } else if (type == "abstract") {
+                            std::string spec_filename = _asset_folder + "//" + child.attribute("spec").value();
+                            Vector3 pos_it = str_to_eigen(child.attribute("pos").value());
+                            Vector4 quat_it = str_to_eigen(child.attribute("quat").value());
+                            Matrix3 R_it = math::quat2mat(quat_it);
+                            TactileSensor* tactile = new TactileSensorAbstract(_robot, it->second, name, spec_filename, R_it, pos_it, kn, kt, mu, damping, render);
+                            _robot->add_tactile_sensor(tactile);
+                        } else {
+                            throw_error("Tactile type " + type + " has not been implemented yet");
                         }
                     }
                 }
@@ -199,6 +310,12 @@ Joint* Simulation::parse_from_xml_file(pugi::xml_node root, pugi::xml_node node,
                     } else if (root.child("default").child(child.name()).attribute("damping")) {
                         damping = (dtype)(root.child("default").child(child.name()).attribute("damping").as_float());
                     }
+                    bool render_contact_points = false;
+                    if (child.attribute("render")) {
+                        render_contact_points = (child.attribute("render").as_bool());
+                    } else if (root.child("default").child(child.name()).attribute("render")) {
+                        render_contact_points = (dtype)(root.child("default").child(child.name()).attribute("render").as_bool());
+                    }                    
                     if ((std::string)(child.name()) == "ground_contact") {
                         auto it = _body_map.find(child.attribute("body").value());
                         if (it == _body_map.end()) {
@@ -218,7 +335,7 @@ Joint* Simulation::parse_from_xml_file(pugi::xml_node root, pugi::xml_node node,
                             std::string error_msg = "Primitive contact body name error: " + (std::string)(child.attribute("primitive_body").value());
                             throw_error(error_msg);
                         }
-                        ForceGeneralPrimitiveContact* force = new ForceGeneralPrimitiveContact(this, it1->second, it2->second, kn, kt, mu, damping);
+                        ForceGeneralPrimitiveContact* force = new ForceGeneralPrimitiveContact(this, it1->second, it2->second, kn, kt, mu, damping, render_contact_points);
                         robot->add_force(force);
                     }
                 }
@@ -252,6 +369,11 @@ Joint* Simulation::parse_from_xml_file(pugi::xml_node root, pugi::xml_node node,
                             end_effector->set_color(rgba.head(3));
                         }
 
+                        // parse name
+                        if (child.attribute("name")) {
+                            end_effector->_name = child.attribute("name").value();
+                        }
+
                         robot->add_end_effector(end_effector);
                     }
                 }
@@ -261,6 +383,17 @@ Joint* Simulation::parse_from_xml_file(pugi::xml_node root, pugi::xml_node node,
         for (auto virtuals : node.children())
             if ((std::string)(virtuals.name()) == "virtual") {
                 for (auto child : virtuals.children()) {
+                    // parse rgba
+                    bool use_texture = false;
+                    Vector4 rgba = Vector4(0., 0., 0., 1.);
+                    std::string texture_path = "";
+                    if (child.attribute("texture")) {
+                        use_texture = true;
+                        texture_path = child.attribute("texture").value();
+                    } else if (child.attribute("rgba")) {
+                        Vector4 rgba = str_to_eigen(child.attribute("rgba").value());
+                    }
+
                     if ((std::string)(child.name()) == "sphere") {
                         std::string name = child.attribute("name").value();
                         Vector3 pos = str_to_eigen(child.attribute("pos").value());
@@ -273,14 +406,21 @@ Joint* Simulation::parse_from_xml_file(pugi::xml_node root, pugi::xml_node node,
                             rgba = str_to_eigen(child.attribute("rgba").value());
                         }
 
-                        VirtualObject* virtual_object = new VirtualObjectSphere(name, pos, radius, rgba.head(3));
+                        VirtualObject* virtual_object = new VirtualObjectSphere(this, name, pos, radius, use_texture, rgba.head(3), texture_path);
+                        
+                        robot->add_virtual_object(virtual_object);
+                    } else if ((std::string)(child.name()) == "cuboid") {
+                        std::string name = child.attribute("name").value();
+                        Vector3 length = str_to_eigen(child.attribute("size").value());
+                        Vector3 pos = str_to_eigen(child.attribute("pos").value());
+                        Vector4 quat = str_to_eigen(child.attribute("quat").value());
+                        Matrix3 R = math::quat2mat(quat);
+                        VirtualObject* virtual_object = new VirtualObjectCuboid(this, name, length, pos, R, use_texture, rgba.head(3), texture_path);
                         
                         robot->add_virtual_object(virtual_object);
                     }
                 }
             }
-
-        this->addRobot(robot);
 
         return nullptr;
     } else if ((std::string)(node.name()) == "link") {
@@ -383,6 +523,17 @@ Joint* Simulation::parse_from_xml_file(pugi::xml_node root, pugi::xml_node node,
             //     joint->set_stiffness(stiffness);
             // }
 
+            // parse joint limit
+            if (joint_node.attribute("lim")) {
+                Vector2 joint_limit = str_to_eigen(joint_node.attribute("lim").value());
+                dtype joint_limit_stiffness = 0.0;
+                if (joint_node.attribute("lim_stiffness")) {
+                    joint_limit_stiffness = (dtype)joint_node.attribute("lim_stiffness").as_float();
+                } else if (root.child("default").child("joint").attribute("lim_stiffness")) {
+                    joint_limit_stiffness = (dtype)root.child("default").child("joint").attribute("lim_stiffness").as_float();
+                }
+                joint->set_joint_limit(joint_limit(0), joint_limit(1), joint_limit_stiffness);
+            }
             // activate design parameters
             if (design_params_1) {
                 joint->activate_design_parameters_type_1(true);
@@ -409,10 +560,40 @@ Joint* Simulation::parse_from_xml_file(pugi::xml_node root, pugi::xml_node node,
             } else if (root.child("default").child("body").attribute("density")) {
                 density = (dtype)root.child("default").child("body").attribute("density").as_float();
             }
+            Vector3 scale = Vector3::Ones();
+            if (body_node.attribute("scale")) {
+                scale = str_to_eigen(body_node.attribute("scale").value());
+            } else if (root.child("default").child("body").attribute("scale")) {
+                scale = str_to_eigen(root.child("default").child("body").attribute("scale").value());
+            }
 
             if (type == "cuboid") {
                 Vector3 length = str_to_eigen(body_node.attribute("size").value());
-                body = new BodyCuboid(this, joint, length, R, pos, density);
+                Vector3i general_contact_resolution = Vector3i(6, 6, 6);
+                if (body_node.attribute("general_contact_resolution")) {
+                    general_contact_resolution = str_to_eigen_int(body_node.attribute("general_contact_resolution").value());
+                }
+                body = new BodyCuboid(this, joint, length, R, pos, density, general_contact_resolution);
+            } else if (type == "cylinder") {
+                dtype length = (dtype)body_node.attribute("length").as_float();
+                dtype radius = (dtype)body_node.attribute("radius").as_float();
+                int general_contact_angle_resolution = 8;
+                int general_contact_radius_resolution = 3;
+                if (body_node.attribute("general_contact_angle_resolution")) {
+                    general_contact_angle_resolution = body_node.attribute("general_contact_angle_resolution").as_int();
+                }
+                if (body_node.attribute("general_contact_radius_resolution")) {
+                    general_contact_radius_resolution = body_node.attribute("general_contact_radius_resolution").as_int();
+                }
+                body = new BodyCylinder(this, joint, radius, length, R, pos, density, general_contact_angle_resolution, general_contact_radius_resolution);
+            } else if (type == "capsule") {
+                dtype length = (dtype)body_node.attribute("length").as_float();
+                dtype radius = (dtype)body_node.attribute("radius").as_float();
+                Vector2i general_contact_resolution = Vector2i(5, 4);
+                if (body_node.attribute("general_contact_resolution")) {
+                    general_contact_resolution = str_to_eigen_int(body_node.attribute("general_contact_resolution").value());
+                }
+                body = new BodyCapsule(this, joint, length, radius, R, pos, density, general_contact_resolution);
             } else if (type == "sphere") {
                 dtype radius = (dtype)body_node.attribute("radius").as_float();
                 body = new BodySphere(this, joint, radius, R, pos, density);
@@ -433,20 +614,48 @@ Joint* Simulation::parse_from_xml_file(pugi::xml_node root, pugi::xml_node node,
                 }
                 std::string filename = body_node.attribute("filename").value();
                 filename = _asset_folder + "//" + filename;
-                body = new BodyMeshObj(this, joint, filename, R, pos, transform_type, density);
+                body = new BodyMeshObj(this, joint, filename, R, pos, transform_type, density, scale);
                 
             } else if (type == "abstract") {
                 dtype mass = (dtype)body_node.attribute("mass").as_float();
-                Vector3 inertia = str_to_eigen(body_node.attribute("inertia").value());
-                std::string mesh_filename = "";
+                VectorX inertia = str_to_eigen(body_node.attribute("inertia").value());
+                
+                // parse visual mesh
+                std::string visual_mesh_filename = "";
+                Vector3 visual_frame_pos = Vector3::Zero();
+                Vector4 visual_frame_quat = Vector4(1, 0, 0, 0);
                 if (body_node.attribute("mesh")) {
-                    mesh_filename = _asset_folder + "//" + body_node.attribute("mesh").value();
+                    visual_mesh_filename = _asset_folder + "//" + body_node.attribute("mesh").value();
+                } else if (body_node.child("visual") && body_node.child("visual").attribute("mesh")) {
+                    visual_mesh_filename = _asset_folder + "//" + body_node.child("visual").attribute("mesh").value();
+                    if (body_node.child("visual").attribute("pos")) {
+                        visual_frame_pos = str_to_eigen(body_node.child("visual").attribute("pos").value());
+                    }
+                    if (body_node.child("visual").attribute("quat")) {
+                        visual_frame_quat = str_to_eigen(body_node.child("visual").attribute("quat").value());
+                    }
                 }
-                body = new BodyAbstract(this, joint, R, pos, mass, inertia, mesh_filename);
+
+
+                // parse collisiont contact points
+                Vector3 collision_frame_pos = Vector3::Zero();
+                Vector4 collision_frame_quat = Vector4(1, 0, 0, 0);
+                std::vector<Vector3> collision_points;
                 if (body_node.attribute("contacts")) {
-                    std::vector<Vector3> contacts = parse_contact_points(body_node.attribute("contacts").value());
-                    body->set_contacts(contacts);
+                    collision_points = parse_contact_points(body_node.attribute("contacts").value());
+                } else if (body_node.child("collision") && body_node.child("collision").attribute("contacts")) {
+                    collision_points = parse_contact_points(body_node.child("collision").attribute("contacts").value());
+                    if (body_node.child("collision").attribute("pos")) {
+                        collision_frame_pos = str_to_eigen(body_node.child("collision").attribute("pos").value());
+                    }
+                    if (body_node.child("collision").attribute("quat")) {
+                        collision_frame_quat = str_to_eigen(body_node.child("collision").attribute("quat").value());
+                    }
                 }
+                body = new BodyAbstract(this, joint, R, pos, mass, inertia, 
+                                        visual_mesh_filename, math::quat2mat(visual_frame_quat), visual_frame_pos, 
+                                        collision_points, math::quat2mat(collision_frame_quat), collision_frame_pos,
+                                        scale);
             } else {
                 std::string error_msg = "Body type error: " + type;
                 throw_error(error_msg);
@@ -490,13 +699,6 @@ Joint* Simulation::parse_from_xml_file(pugi::xml_node root, pugi::xml_node node,
             }
 
         return joint;
-    } else if ((std::string)(node.name()) == "robot") {
-        Joint* root_joint;
-        for (auto child : node.children())
-            if ((std::string)(child.name()) == "link") {
-                root_joint = parse_from_xml_file(root, child, parent_joint, joint_cnt);
-            }
-        return root_joint;
     }
 
     return nullptr;

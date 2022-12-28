@@ -8,6 +8,16 @@ namespace redmax {
 
 class Body;
 class BodyPrimitiveShape;
+class ForceGeneralPrimitiveContact;
+
+class ForceGeneralPrimitiveContactAnimator : public opengl_viewer::Animator {
+public:
+    ForceGeneralPrimitiveContactAnimator(ForceGeneralPrimitiveContact* force) : _force(force) {}
+
+    const Eigen::Matrix4f AnimatedModelMatrix(const float t);
+
+    ForceGeneralPrimitiveContact* _force;
+};
 
 class ForceGeneralPrimitiveContact : public Force {
 public:
@@ -18,12 +28,16 @@ public:
     dtype _mu;              // coefficient of friction
     dtype _damping;         // damping of the contact force
     dtype _scale;           // a scale parameter to control the stiffness (for continuation method)
+    bool _render_contact_points; // whether render contact points
+
+    std::vector<Contact> _contacts;
 
     ForceGeneralPrimitiveContact(
         Simulation* sim,
         Body* contact_body, Body* primitive_body,
         dtype kn = 1., dtype kt = 0.,
-        dtype mu = 0., dtype damping = 0.);
+        dtype mu = 0., dtype damping = 0.,
+        bool render_contact_points = false);
     
     void set_stiffness(dtype kn, dtype kt);
     void set_friction(dtype mu);
@@ -43,6 +57,12 @@ public:
         MatrixX& dfm_dp, MatrixX& dfr_dp,
         bool verbose = false);
 
+    void get_rendering_objects(
+        std::vector<Matrix3Xf>& vertex_list, 
+        std::vector<Matrix3Xi>& face_list,
+        std::vector<opengl_viewer::Option>& option_list,
+        std::vector<opengl_viewer::Animator*>& animator_list);
+        
     void test_derivatives();
     void test_derivatives_runtime();
     void test_design_derivatives_runtime();

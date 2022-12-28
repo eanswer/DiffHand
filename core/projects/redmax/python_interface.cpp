@@ -52,6 +52,7 @@ PYBIND11_MODULE(redmax_py, m) {
         .def_readwrite("camera_pos", &Simulation::ViewerOptions::_camera_pos)
         .def_readwrite("camera_up", &Simulation::ViewerOptions::_camera_up)
         .def_readwrite("camera_lookat", &Simulation::ViewerOptions::_camera_lookat)
+        .def_readwrite("background_color_rgba", &Simulation::ViewerOptions::_background_color_rgba)
         .def_readwrite("ground", &Simulation::ViewerOptions::_ground)
         .def_readwrite("E_g", &Simulation::ViewerOptions::_E_g)
         .def_readwrite("record", &Simulation::ViewerOptions::_record)
@@ -67,6 +68,8 @@ PYBIND11_MODULE(redmax_py, m) {
         .def_readwrite("df_du", &BackwardInfo::_df_du)
         .def_readwrite("df_dq", &BackwardInfo::_df_dq)
         .def_readwrite("df_dvar", &BackwardInfo::_df_dvar)
+        .def_readwrite("df_dtactile", &BackwardInfo::_df_dtactile)
+        .def_readwrite("q_his", &BackwardInfo::_q_his)
 
         .def("set_flags", &BackwardInfo::set_flags,
                 "set the flags for backward", 
@@ -92,6 +95,7 @@ PYBIND11_MODULE(redmax_py, m) {
         .def_readonly("ndof_p", &Simulation::_ndof_p)
         .def_readonly("ndof_u", &Simulation::_ndof_u)
         .def_readonly("ndof_var", &Simulation::_ndof_var)
+        .def_readonly("ndof_tactile", &Simulation::_ndof_tactile)
 
         .def("init", &Simulation::init,
                 "initialize the simulation")
@@ -134,8 +138,34 @@ PYBIND11_MODULE(redmax_py, m) {
         .def("get_ctrl_range", &Simulation::get_ctrl_range, 
                 "get the range of the ctrl",
                 py::arg("ctrl_min"), py::arg("ctrl_max"))
+        .def("get_ctrl_force", &Simulation::get_ctrl_force,
+                "get the force of the control motors")
+
         .def("print_ctrl_info", &Simulation::print_ctrl_info)
         .def("print_design_params_info", &Simulation::print_design_params_info)
+
+        .def("get_tactile_depth", &Simulation::get_tactile_depth,
+                "get the tactile depth given the tactile name, shape (ndof_tactile(name), )",
+                py::arg("name"))
+        .def("get_tactile_normal_force", &Simulation::get_tactile_normal_force,
+                "get the tactile normal force given the tactile name, shape (ndof_tactile(name), )",
+                py::arg("name"))
+        .def("get_tactile_shear_force", &Simulation::get_tactile_shear_force,
+                "get the tactile shear force given the tactile name, shape (ndof_tactile(name), 2)",
+                py::arg("name"))
+        .def("get_tactile_force", &Simulation::get_tactile_force,
+                "get the tactile force given the tactile name, shape (ndof_tactile(name), 3)",
+                py::arg("name"))
+        .def("get_tactile_force_vector", &Simulation::get_tactile_force_vector,
+                "get the tactile force of all tactile sensors, shape (ndof_tactile(name) * 3, )")
+        .def("get_tactile_image_pos", &Simulation::get_tactile_image_pos,
+                "get the tactile image positions given the tactile name, shape (ndof_tactile(name), 2)",
+                py::arg("name"))
+        .def("get_tactile_flow_images", &Simulation::get_tactile_flow_images,
+                "get the tactile flow images of all sensors, shape (ndof_tactile, rows, cols, 3)")
+        .def("get_tactile_sensor_pos", &Simulation::get_tactile_sensor_pos,
+                "get the position of each marker in tactile sensor local frame, shape (ndof_tactile(name), 2)",
+                py::arg("name"))
 
         .def("set_contact_scale", &Simulation::set_contact_scale,
             "set the contact scale for continuation method",
@@ -151,18 +181,60 @@ PYBIND11_MODULE(redmax_py, m) {
         .def("update_virtual_object", &Simulation::update_virtual_object,
                 "update the properties of the virtual objects by name",
                 py::arg("name"), py::arg("data"))
-                
+
+        .def("update_contact_parameters", &Simulation::update_contact_parameters,
+                "update the parameters of general primitive contact",
+                py::arg("body1"), py::arg("body2"), py::arg("kn"), py::arg("kt"), py::arg("mu"), py::arg("damping"))
+        .def("update_tactile_parameters", &Simulation::update_tactile_parameters,
+                "update the parameters of tactile sensor",
+                py::arg("name"), py::arg("kn"), py::arg("kt"), py::arg("mu"), py::arg("damping"))
+        .def("update_body_density", &Simulation::update_body_density,
+                "update the density of body by its name",
+                py::arg("body_name"), py::arg("density"))
+        .def("update_body_color", &Simulation::update_body_color,
+                "update the color of body by its name",
+                py::arg("body_name"), py::arg("color"))
+        .def("update_body_size", &Simulation::update_body_size,
+                "update the size of body by its name (only support cuboid now)",
+                py::arg("body_name"), py::arg("body_size"))
+        .def("update_joint_damping", &Simulation::update_joint_damping,
+                "update the damping of joint by its name",
+                py::arg("joint_name"), py::arg("damping"))
+        .def("update_tactile_sensor_pos", &Simulation::update_tactile_sensor_pos,
+                "update the marker position of tactile sensor",
+                py::arg("name"), py::arg("new_pos"))
+        .def("update_joint_location", &Simulation::update_joint_location,
+                "update the joint_location of joint by its name",
+                py::arg("joint_name"), py::arg("joint_location"))
+        .def("update_endeffector_position", &Simulation::update_endeffector_position,
+                "update the position of the endeffector (in joint frame)",
+                py::arg("endeffector_name"), py::arg("position"))
+
         .def_readonly("backward_info", &Simulation::_backward_info)
         .def_readonly("backward_results", &Simulation::_backward_results)
 
         .def("reset", &Simulation::reset,
                 "reset the simulation.",
-                py::arg("backward_flag") = false, py::arg("backward_design_params_flag") = true)
+                py::arg("backward_flag") = false, py::arg("backward_design_params_flag") = false)
+                
+        .def("clearBackwardCache", &Simulation::clearBackwardCache,
+                "clear the backward cache.")
+        .def("saveBackwardCache", &Simulation::saveBackwardCache,
+                "save the backward info in to cache.")
+        .def("popBackwardCache", &Simulation::popBackwardCache,
+                "pop up the backward info at the end of the cache.")
+        .def("backwardCacheSize", &Simulation::backwardCacheSize,
+                "get the size of the backward cache")
+
         .def("forward", &Simulation::forward,
                 "step forward the simulation.",
-                py::arg("num_steps"), py::arg("verbose") = false, py::arg("test_derivatives") = false)
+                py::arg("num_steps"), py::arg("verbose") = false, py::arg("test_derivatives") = false, py::arg("save_last_frame_var_only") = false)
         .def("backward", &Simulation::backward,
                 "backward differentiation.")
+        .def("backward_steps", &Simulation::backward_steps,
+                "backward differentiation for a specified number of steps",
+                py::arg("num_backward_steps"))
+                
         .def("replay", &Simulation::replay,
                 "replay (render) the simulation.")
 

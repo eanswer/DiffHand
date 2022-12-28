@@ -6,15 +6,17 @@ namespace redmax {
 class BodyCuboid : public BodyPrimitiveShape {
 public:
     Vector3 _length;
+    Vector3i _general_contact_resolution;
+    // std::vector<Vector3> _general_contact_points;
 
     BodyCuboid(Simulation *sim, Joint *joint, Vector3 length, 
-                Matrix3 R_ji, Vector3 p_ji, dtype density);
+                Matrix3 R_ji, Vector3 p_ji, dtype density,
+                Vector3i general_contact_resolution = Vector3i(6, 6, 6));
 
     void computeMassMatrix();
 
     // contact candidate points
     void precompute_contact_points();
-    std::vector<Vector3> get_general_contact_points();
 
     // rendering
     void get_rendering_objects(
@@ -67,6 +69,8 @@ public:
                     Matrix36 &dtdot_dq2, Matrix36 &dtdot_dphi2,
                     Matrix3 &dxi2_dxw, Matrix36 &dxi2_dq2 /* derivatives for xi2 */);
 
+    void update_density(dtype density);
+    void update_size(VectorX body_size);
 
     void test_collision_derivatives();
     void test_collision_derivatives_runtime(Vector3 xw, Vector3 xw_dot);

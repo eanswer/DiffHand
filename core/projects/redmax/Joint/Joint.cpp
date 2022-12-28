@@ -20,6 +20,9 @@ Joint::Joint(Simulation *sim, int id, Joint* parent, Matrix3 R, Vector3 p, int n
 
     _body = nullptr;
     
+    _frame = frame;
+    _R0 = R;
+    _p0 = p;
     if (frame == Frame::WORLD) {
         // E_pj_0 = E_p0_0 * E_0j_0
         if (_parent != nullptr) {
@@ -42,6 +45,9 @@ Joint::Joint(Simulation *sim, int id, Joint* parent, Matrix3 R, Vector3 p, int n
     _children.clear();
 
     _Kr = _Dr = 0;
+    _joint_limit_lower = (dtype)INT_MIN;
+    _joint_limit_upper = (dtype)INT_MAX;
+    _joint_limit_stiffness = 0.;
     
     if (_ndof > 0) {
         _q_rest = VectorX::Zero(_ndof);
@@ -80,6 +86,33 @@ void Joint::set_stiffness(dtype stiffness, VectorX q_rest) {
     _q = q_rest;
     if (_design_params_5._active) {
         _design_params_5._params[0] = _Kr;
+    }
+}
+
+void Joint::set_joint_limit(dtype lower, dtype upper, dtype joint_limit_stiffness) {
+    _joint_limit_lower = lower;
+    _joint_limit_upper = upper;
+    _joint_limit_stiffness = joint_limit_stiffness;
+}
+
+void Joint::update_joint_location(Vector3 joint_location) {
+    _p0 = joint_location;
+    if (_frame == Frame::WORLD) {
+        // E_pj_0 = E_p0_0 * E_0j_0
+        if (_parent != nullptr) {
+            _E_pj_0 = _parent->_E_j0_0 * math::SE(_R0, _p0);
+        } else {
+            _E_pj_0 = math::SE(_R0, _p0);
+        }
+    } else if (_frame == Frame::LOCAL) {
+        _E_pj_0 = math::SE(_R0, _p0);
+    }
+
+    _E_jp_0 = math::Einv(_E_pj_0);
+    if (_parent == nullptr) {
+        _E_j0_0 = _E_jp_0;
+    } else {
+        _E_j0_0 = _E_jp_0 * _parent->_E_j0_0;
     }
 }
 
@@ -216,32 +249,47 @@ void Joint::activate_design_parameters_type_5(bool active) {
 }
 
 void Joint::computeJointForce(VectorX& fr) {
-    if (_ndof > 0)
+    if (_ndof > 0) {
+        // stiffness and damping force
         fr.segment(_index[0], _ndof) += - _Kr * (_q - _q_rest) - _Dr * _qdot;
+        // joint limit force
+        for (int i = 0;i < _ndof;++i) {
+            if (_q[i] < _joint_limit_lower)
+                fr(_index[i]) += _joint_limit_stiffness * (_joint_limit_lower - _q[i]);
+            if (_q[i] > _joint_limit_upper)
+                fr(_index[i]) += _joint_limit_stiffness * (_joint_limit_upper - _q[i]);
+        }
+    }
 }
 
 void Joint::computeJointForceWithDerivative(VectorX& fr, MatrixX& Kr, MatrixX& Dr) {
     if (_ndof > 0) {
+        // stiffness and damping force
         fr.segment(_index[0], _ndof) += - _Kr * (_q - _q_rest) - _Dr * _qdot;
+        // joint limit force
+        for (int i = 0;i < _ndof;++i) {
+            if (_q[i] < _joint_limit_lower)
+                fr(_index[i]) += _joint_limit_stiffness * (_joint_limit_lower - _q[i]);
+            if (_q[i] > _joint_limit_upper)
+                fr(_index[i]) += _joint_limit_stiffness * (_joint_limit_upper - _q[i]);
+        }
 
         /********************************* Derivatives ************************************/
+        // stiffness and damping force
         for (int k = 0;k < _ndof;k++) {
             Kr(_index[k], _index[k]) -= _Kr;
             Dr(_index[k], _index[k]) -= _Dr;
+        }
+        // joint limit force
+        for (int i = 0;i < _ndof;++i) {
+            if (_q[i] < _joint_limit_lower || _q[i] > _joint_limit_upper)
+                Kr(_index[i], _index[i]) += -_joint_limit_stiffness;
         }
     }
 }
 
 void Joint::computeJointForceWithDerivative(VectorX& fr, MatrixX& Kr, MatrixX& Dr, MatrixX& dfr_dp) {
-    if (_ndof > 0) {
-        fr.segment(_index[0], _ndof) += - _Kr * (_q - _q_rest) - _Dr * _qdot;
-
-        /********************************* Derivatives ************************************/
-        for (int k = 0;k < _ndof;k++) {
-            Kr(_index[k], _index[k]) -= _Kr;
-            Dr(_index[k], _index[k]) -= _Dr;
-        }
-    }
+    computeJointForceWithDerivative(fr, Kr, Dr);
 }
 
 Vector3 Joint::position_in_world(Vector3& pos) {
@@ -315,6 +363,7 @@ void Joint::test_derivatives() {
             auto S_pos = _S_j;
             Adot_fd = (A_pos - A) / h;
             Sdot_fd = (S_pos - S_j) / h;
+            _q -= _qdot * h;
         }
         print_error(joint_str + ": Adot", Adot, Adot_fd);
         print_error(joint_str + ": Sdot", S_j_dot, Sdot_fd);

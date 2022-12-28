@@ -8,7 +8,10 @@ namespace redmax {
 
 const Eigen::Matrix4f BodyAnimator::AnimatedModelMatrix(const float t) {
     Matrix4f model_matrix = _body->_E_0i.cast<float>();
-    model_matrix.topRightCorner(3, 1) /= 10.; // scale for better visualization
+    if (_body->_sim->_options->_unit == "cm-g")
+        model_matrix.topRightCorner(3, 1) /= 10.; // scale for better visualization
+    else
+        model_matrix.topRightCorner(3, 1) *= 10.; // scale for better visualization
     return model_matrix;
 }
 

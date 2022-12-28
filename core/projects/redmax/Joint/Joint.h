@@ -32,10 +32,15 @@ public:
 
     // data
     // constants
+    Frame _frame;               // frame type for the joint
+    Matrix3 _R0;                // joint transformation in the specified frame
+    Vector3 _p0;
     SE3 _E_pj_0, _E_jp_0;       // initial transformation from j to its parent joint
     SE3 _E_j0_0;
     dtype _Kr, _Dr;             // stiffness and damping coefficients of joint
     VectorX _q_rest;            // rest state of joints
+    dtype _joint_limit_lower, _joint_limit_upper; // joint limits constraints
+    dtype _joint_limit_stiffness; // stiffness coefficients for joint limits constraints
 
     // variables
     SE3 _Q, _Q_inv;             // transformation from joint j to its parent joint induced by q
@@ -73,8 +78,12 @@ public:
     void set_damping(dtype damping);
     void set_stiffness(dtype stiffness, VectorX q_rest);
 
+    // joint limit setting
+    void set_joint_limit(dtype lower, dtype upper, dtype joint_limit_stiffness);
+
     // update data
     virtual void update(bool design_gradient = false);
+    void update_joint_location(Vector3 joint_location); // update the joint location in the original frame (specified in _frame), typically used for domain/task randomization
 
     // activate design parameters
     void activate_design_parameters_type_1(bool active = true);

@@ -29,7 +29,7 @@ import torch
 import matplotlib.pyplot as plt
 
 torch.set_default_dtype(torch.double)
-
+time_start = time.time()
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('')
     parser.add_argument("--model", type = str, default = 'rss_finger_reach')
@@ -136,7 +136,7 @@ if __name__ == '__main__':
             design_params = design_np.parameterize(cage_params)
             sim.set_design_params(design_params)
         
-        sim.reset(backward_flag = backward_flag, backward_design_params_flag = optimize_design_flag)
+        sim.reset(backward_flag = backward_flag, backward_design_params_flag = backward_flag and optimize_design_flag)
 
         # objectives coefficients
         coef_u = 0.1
@@ -218,7 +218,11 @@ if __name__ == '__main__':
 
         global f_log, num_sim
         num_sim -= 1
-        print_info('iteration ', len(f_log), ', num_sim = ', num_sim, ', Objective = ', f, info)
+        time_now = time.time()
+        global time_start
+        # print_info('iteration ', len(f_log), ', num_sim = ', num_sim, ', Objective = ', f, info)
+        print_info('iteration ', len(f_log), ', num_sim = ', num_sim, ', Objective = ', f, info, ', time = ', time_now - time_start)
+        # time_prev = time_now
         if log:
             f_log.append(np.array([num_sim, f]))
 

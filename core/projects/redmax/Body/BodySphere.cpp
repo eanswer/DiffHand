@@ -1,4 +1,5 @@
 #include "Body/BodySphere.h"
+#include "Simulation.h"
 
 namespace redmax {
 
@@ -34,7 +35,15 @@ void BodySphere::get_rendering_objects(
         std::string(GRAPHICS_CODEBASE_SOURCE_DIR) + "/resources/meshes/sphere.obj",
         sphere_vertex, sphere_face, sphere_uv);
     
-    sphere_vertex *= (float)_radius / 10.;
+    sphere_vertex *= (float)_radius;
+
+    _rendering_vertices = sphere_vertex;
+    _rendering_faces = sphere_face;
+    
+    if (_sim->_options->_unit == "cm-g") 
+        sphere_vertex /= 10.;
+    else
+        sphere_vertex *= 10.;
 
     if (!_use_texture) {
         object_option.SetVectorOption("ambient", _color(0), _color(1), _color(2));
@@ -182,6 +191,11 @@ void BodySphere::collision(
     dtdot_dq2.leftCols(3) = (I - n * n.transpose()) * (-dxw2dot_dq2.leftCols(3));
     dtdot_dq2.rightCols(3) = -dxw2dot_dq2.rightCols(3) - n.transpose() * vw * dn_dq2.rightCols(3) - n * (vw.transpose() * dn_dq2.rightCols(3) - n.transpose() * dxw2dot_dq2.rightCols(3));;
     dtdot_dphi2 = (I - n * n.transpose()) * (- dxw2dot_dphi2);
+}
+
+void BodySphere::update_density(dtype density) {
+    _density = density;
+    computeMassMatrix();
 }
 
 void BodySphere::test_collision_derivatives() {

@@ -9,10 +9,19 @@
 
 namespace redmax {
 
+const Eigen::Matrix4f ForceGeneralPrimitiveContactAnimator::AnimatedModelMatrix(const float t) {
+    Matrix4f model_matrix = _force->_contact_body->_E_0i.cast<float>();
+    if (_force->_contact_body->_sim->_options->_unit == "cm-g")
+        model_matrix.topRightCorner(3, 1) /= 10.; // scale for better visualization
+    else
+        model_matrix.topRightCorner(3, 1) *= 10.; // scale for better visualization
+    return model_matrix;
+}
+
 ForceGeneralPrimitiveContact::ForceGeneralPrimitiveContact(
     Simulation* sim,
     Body* contact_body, Body* primitive_body,
-    dtype kn, dtype kt, dtype mu, dtype damping) : Force(sim) {
+    dtype kn, dtype kt, dtype mu, dtype damping, bool render_contact_points) : Force(sim) {
     _contact_body = contact_body;
     _primitive_body = dynamic_cast<BodyPrimitiveShape*>(primitive_body);
     if (_primitive_body == nullptr) {
@@ -24,6 +33,7 @@ ForceGeneralPrimitiveContact::ForceGeneralPrimitiveContact(
     _mu = mu;
     _damping = damping;
     _scale = 1.;
+    _render_contact_points = render_contact_points;
 }
 
 void ForceGeneralPrimitiveContact::set_stiffness(dtype kn, dtype kt) {
@@ -47,15 +57,14 @@ void ForceGeneralPrimitiveContact::computeForce(VectorX& fm, VectorX& fr, bool v
     auto t0 = clock();
 
     // detect the contact points between two bodies
-    std::vector<Contact> contacts;
-    contacts.clear();
+    _contacts.clear();
 
-    collision_detection_general_primitive(_contact_body, _primitive_body, contacts);
+    collision_detection_general_primitive(_contact_body, _primitive_body, _contacts);
 
     auto t1 = clock();
 
     VectorX fm_sub;
-    computeForce(contacts, fm_sub, verbose);
+    computeForce(_contacts, fm_sub, verbose);
 
     fm.segment(_contact_body->_index[0], 6) += fm_sub.head(6);
     fm.segment(_primitive_body->_index[0], 6) += fm_sub.tail(6);
@@ -75,15 +84,14 @@ void ForceGeneralPrimitiveContact::computeForceWithDerivative(
     auto t0 = clock();
 
     // detect the contact points between two bodies
-    std::vector<Contact> contacts;
-    contacts.clear();
-    collision_detection_general_primitive(_contact_body, _primitive_body, contacts);
+    _contacts.clear();
+    collision_detection_general_primitive(_contact_body, _primitive_body, _contacts);
 
     auto t1 = clock();
 
     VectorX fm_sub;
     MatrixX Km_sub, Dm_sub;
-    computeForceWithDerivative(contacts, fm_sub, Km_sub, Dm_sub, verbose);
+    computeForceWithDerivative(_contacts, fm_sub, Km_sub, Dm_sub, verbose);
 
     fm.segment(_contact_body->_index[0], 6) += fm_sub.head(6);
     fm.segment(_primitive_body->_index[0], 6) += fm_sub.tail(6);
@@ -114,15 +122,14 @@ void ForceGeneralPrimitiveContact::computeForceWithDerivative(
     auto t0 = clock();
 
     // detect the contact points between two bodies
-    std::vector<Contact> contacts;
-    contacts.clear();
-    collision_detection_general_primitive(_contact_body, _primitive_body, contacts);
+    _contacts.clear();
+    collision_detection_general_primitive(_contact_body, _primitive_body, _contacts);
 
     auto t1 = clock();
 
     VectorX fm_sub;
     MatrixX Km_sub, Dm_sub;
-    computeForceWithDerivative(contacts, fm_sub, Km_sub, Dm_sub, dfm_dp, verbose);
+    computeForceWithDerivative(_contacts, fm_sub, Km_sub, Dm_sub, dfm_dp, verbose);
 
     fm.segment(_contact_body->_index[0], 6) += fm_sub.head(6);
     fm.segment(_primitive_body->_index[0], 6) += fm_sub.tail(6);
@@ -147,16 +154,19 @@ void ForceGeneralPrimitiveContact::computeForceWithDerivative(
 void ForceGeneralPrimitiveContact::computeForce(std::vector<Contact> &contacts, VectorX& fm, bool verbose) {
     Matrix3 R1 = _contact_body->_E_0i.topLeftCorner(3, 3);
     Vector6 phi1 = _contact_body->_phi;
+    Vector3 p1 = _contact_body->_E_0i.topRightCorner(3, 1);
     Matrix3 R2 = _primitive_body->_E_0i.topLeftCorner(3, 3);
     Vector6 phi2 = _primitive_body->_phi;
     
     fm = VectorX::Zero(12);
-
+    if (verbose) {
+        std::cerr << "------------------contact function--------------------" << std::endl;
+    }
     dtype kn = _kn * _scale * _contact_body->_contact_scale;
     dtype kt = _kt * _scale * _contact_body->_contact_scale;
     for (int i = 0;i < contacts.size();i++) {
         Vector3 xi1 = contacts[i]._xi;
-        Vector3 xw1 = _contact_body->_E_0i.topLeftCorner(3, 3) * xi1 + _contact_body->_E_0i.topRightCorner(3, 1);
+        Vector3 xw1 = R1 * xi1 + p1;
         Vector3 xw1_dot = R1 * (math::skew(xi1).transpose() * phi1.head(3) + phi1.tail(3));
         
         dtype d, ddot;
@@ -229,6 +239,7 @@ void ForceGeneralPrimitiveContact::computeForceWithDerivative(
 
     Matrix3 R1 = _contact_body->_E_0i.topLeftCorner(3, 3);
     Vector6 phi1 = _contact_body->_phi;
+    Vector3 p1 = _contact_body->_E_0i.topRightCorner(3, 1);
     Matrix3 R2 = _primitive_body->_E_0i.topLeftCorner(3, 3);
     Vector6 phi2 = _primitive_body->_phi;
 
@@ -236,7 +247,7 @@ void ForceGeneralPrimitiveContact::computeForceWithDerivative(
     dtype kt = _kt * _scale * _contact_body->_contact_scale;
     for (int i = 0;i < contacts.size();i++) {
         Vector3 xi1 = contacts[i]._xi;
-        Vector3 xw1 = _contact_body->_E_0i.topLeftCorner(3, 3) * xi1 + _contact_body->_E_0i.topRightCorner(3, 1);
+        Vector3 xw1 = R1 * xi1 + p1;
         Vector3 xw1_dot = R1 * (math::skew(xi1).transpose() * phi1.head(3) + phi1.tail(3));
         
         Matrix36 dxw1_dq1;
@@ -363,7 +374,6 @@ void ForceGeneralPrimitiveContact::computeForceWithDerivative(
 
             // frictional force on the general contact body
             if (_mu * fc_norm >= kt * tdot_norm - constants::eps) {  // static frictional force
-                // std::cerr << "static" << std::endl;
                 Vector6 fs = -kt * GTRT1 * tdot;
                 fm.head(6) += fs;
 
@@ -375,7 +385,6 @@ void ForceGeneralPrimitiveContact::computeForceWithDerivative(
                 Dm.topLeftCorner(6, 6) -= kt * GTRT1 * dtdot_dphi1;
                 Dm.topRightCorner(6, 6) -= kt * GTRT1 * dtdot_dphi2;
             } else {                                // dynamic frictional force
-                // std::cerr << "dynamic" << std::endl;
                 Vector6 fd = -_mu * fc_norm / tdot_norm * GTRT1 * tdot;
                 fm.head(6) += fd;
 
@@ -1021,6 +1030,53 @@ void ForceGeneralPrimitiveContact::computeForceWithDerivative(
                 }
             }
         }
+    }
+}
+
+void ForceGeneralPrimitiveContact::get_rendering_objects(
+    std::vector<Matrix3Xf>& vertex_list, 
+    std::vector<Matrix3Xi>& face_list,
+    std::vector<opengl_viewer::Option>& option_list,
+    std::vector<opengl_viewer::Animator*>& animator_list) {
+        
+    if (_render_contact_points) {
+        Matrix3Xf vertex;
+        Matrix3Xi face;
+        Matrix2Xf uv;
+        opengl_viewer::Option object_option;
+
+        opengl_viewer::ReadFromObjFile(
+            std::string(GRAPHICS_CODEBASE_SOURCE_DIR) + "/resources/meshes/low_res_sphere.obj",
+            vertex, face, uv);
+
+        vertex *= (float)0.0008;
+
+        std::vector<Vector3> contact_points = _contact_body->get_contact_points();
+        Matrix3Xf all_vertices = Matrix3Xf::Zero(3, vertex.cols() * contact_points.size());
+        Matrix3Xi all_faces = Matrix3Xi::Zero(3, face.cols() * contact_points.size());
+
+        for (int i = 0;i < contact_points.size();i++) {
+            all_vertices.middleCols(i * vertex.cols(), vertex.cols()) = vertex.colwise() + contact_points[i].cast<float>();
+            all_faces.middleCols(i * face.cols(), face.cols()) = face + Matrix3Xi::Constant(3, face.cols(), vertex.cols() * i);
+        }
+
+        if (_sim->_options->_unit == "cm-g")
+            all_vertices /= 10.;
+        else
+            all_vertices *= 10.;
+        
+        object_option.SetBoolOption("smooth normal", false);
+        object_option.SetVectorOption("ambient", 0.7f, 0.3f, 0.3f);
+        object_option.SetVectorOption("diffuse", 0.4f, 0.2368f, 0.1036f);
+        object_option.SetVectorOption("specular", 0.474597f, 0.358561f, 0.200621f);
+        object_option.SetFloatOption("shininess", 46.8f);
+        
+        _animator = new ForceGeneralPrimitiveContactAnimator(this);
+
+        vertex_list.push_back(all_vertices);
+        face_list.push_back(all_faces);
+        option_list.push_back(object_option);
+        animator_list.push_back(_animator);
     }
 }
 

@@ -354,6 +354,95 @@ void Test::test_control_derivative() {
     sim->replay();
 }
 
+void Test::test_tactile_derivative() {
+    Simulation* sim = new Simulation("/home/eanswer/Workspace/Projects/RoboticHand/code/RoboticHandDesign/RedMax/assets/test_tactile_derivatives.xml");
+
+    sim->_viewer_options->_loop = true;
+    sim->_viewer_options->_infinite = true;
+    
+    sim->init();
+
+    sim->reset(false, false);
+    // execute to get initial state
+    int num_steps = 10;
+    for (int i = 0;i < num_steps;++i){
+        VectorX u = VectorX::Zero(sim->_ndof_u);
+        sim->set_u(u);
+        sim->forward(1, true, true);
+    }
+
+    // q_init = sim->get_q();
+    // VectorX qdot_init = sim->get_qdot_init();
+    // sim->set_q_init(q_init);
+    // sim->set_qdot_init(qdot_init);
+    // sim->reset(true, false);
+
+    // std::cerr << q_init.transpose() << std::endl;
+    // std::cerr << qdot_init.transpose() << std::endl;
+
+    // std::cerr << "start simulation" << std::endl;
+
+    // std::vector<Vector6> u_his;
+    // double f = 0.0;
+    // int stage = 5;
+    // for (int i = 0;i < num_steps[stage];++i) {
+    //     Vector6 u = (target_qs[stage + 1] - target_qs[stage]) / num_steps[stage] * (i + 1) + target_qs[stage];
+    //     std::cerr << u.transpose() << std::endl;
+    //     u_his.push_back(u);
+
+    //     sim->set_u(u);
+
+    //     sim->forward(1, true, true);
+
+    //     VectorX tactile_force = sim->get_tactile_force_vector();
+    //     VectorX q = sim->get_q();
+    //     // f += tactile_force.sum();
+    //     f += q.sum();
+    // }
+
+    // sim->_backward_info.set_flags(false, false, false, true);
+    // sim->_backward_info._df_du = VectorX::Zero(sim->_ndof_u * num_steps[stage]);
+    // // sim->_backward_info._df_dq = VectorX::Zero(sim->_ndof_r * num_steps[stage]);
+    // // sim->_backward_info._df_dtactile = VectorX::Ones(sim->_ndof_tactile * num_steps[stage]);
+    // sim->_backward_info._df_dq0 = VectorX::Zero(sim->_ndof_r);
+    // sim->_backward_info._df_dq = VectorX::Zero(sim->_ndof_r * num_steps[stage]);
+    // sim->_backward_info._df_dtactile = VectorX::Zero(sim->_ndof_tactile * num_steps[stage]);
+
+    // sim->backward();
+
+    // std::cerr << "start finite difference" << std::endl;
+
+    // VectorX df_du = sim->_backward_results._df_du;
+
+    // VectorX df_du_fd = VectorX::Zero(df_du.size());
+    // double eps = 1e-2;
+    // for (int ii = 0;ii < 10;++ii) {
+    //     for (int i = 0;i < u_his.size();++i)
+    //         for (int j = 0;j < u_his[i].size();++j) {
+    //             u_his[i][j] += eps;
+    //             double f_pos = 0.0;
+    //             sim->reset(false, false);
+    //             for (int step = 0;step < u_his.size();++step) {
+    //                 sim->set_u(u_his[step]);
+    //                 sim->forward(1, false, false);
+    //                 VectorX tactile_force = sim->get_tactile_force_vector();
+    //                 VectorX q = sim->get_q();
+    //                 // f_pos += tactile_force.sum();
+    //                 f_pos += q.sum();
+    //             }
+    //             u_his[i][j] -= eps;
+    //             df_du_fd[i * sim->_ndof_u + j] = (f_pos - f) / eps;
+    //             // sim->replay();
+    //         }
+    //     // sim->replay();
+    //     std::cerr << "eps = " << eps << std::endl;
+    //     // std::cerr << "df_du    = " << df_du.transpose() << std::endl;
+    //     // std::cerr << "df_du_df = " << df_du_fd.transpose() << std::endl;
+    //     print_error("df_du", df_du, df_du_fd);    
+    //     eps /= 10.;
+    // }
+}
+
 void Test::test_torque_finger() {
     Simulation* sim = SimEnvGenerator::createTorqueFingerDemo("BDF1");
 
@@ -976,6 +1065,34 @@ void Test::test_box_contact_optimization() {
 
     std::cerr << "q0 = " << q0.transpose() << ", qdot0 = " << qdot0.transpose() << std::endl;
     std::cerr << "q = " << sim->get_q().transpose() << ", qdot = " << sim->get_qdot().transpose() << std::endl;
+
+    sim->replay();
+}
+
+void Test::test_tactile() {
+    Simulation* sim = new Simulation("/home/eanswer/Workspace/Projects/RoboticHand/code/RoboticHandDesign/RedMax/assets/tactile_pad.xml");
+
+    sim->_viewer_options->_loop = true;
+    sim->_viewer_options->_infinite = true;
+
+    sim->init();
+
+    sim->print_ctrl_info();
+
+    // sim->print_design_params_info();
+    
+    // auto qdot_init = sim->get_qdot_init();
+    // qdot_init[sim->_ndof_r - 2] = 5.;
+    // sim->set_qdot_init(qdot_init);
+
+    sim->reset();
+
+    int t0 = clock();
+    sim->forward(300, false, false);
+
+    int t1 = clock();
+
+    std::cerr << "time = " << (t1 - t0) / 1000.0 << "ms" << std::endl;
 
     sim->replay();
 }

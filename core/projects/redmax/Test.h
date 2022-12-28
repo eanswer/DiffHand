@@ -22,6 +22,8 @@ public:
     
     static void test_control_derivative();
     
+    static void test_tactile_derivative();
+    
     static void test_torque_finger();
 
     static void test_torque_finger_flick();
@@ -35,4 +37,6 @@ public:
     static void test_ground_contact_optimization();
 
     static void test_box_contact_optimization();
+
+    static void test_tactile();
 };

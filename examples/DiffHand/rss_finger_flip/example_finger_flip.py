@@ -126,7 +126,7 @@ if __name__ == '__main__':
             design_params = design_np.parameterize(cage_params)
             sim.set_design_params(design_params)
         
-        sim.reset(backward_flag = backward_flag, backward_design_params_flag = optimize_design_flag)
+        sim.reset(backward_flag = backward_flag, backward_design_params_flag = backward_flag and optimize_design_flag)
 
         # objectives coefficients
         coef_u = 5.
