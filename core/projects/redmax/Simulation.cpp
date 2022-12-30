@@ -2022,7 +2022,6 @@ void Simulation::replay() {
         std::cerr << "[Error] Please call simulation.reset() before simulation.run_viewer()." << std::endl;
         throw "error";
     }
-    
     // save the current q and qdot
     VectorX q = get_q();
     VectorX qdot = get_qdot();
