@@ -111,7 +111,14 @@ We provide several examples to test the forward simulation and its differentiabi
   python test_redmax.py --model hand_sphere
   ```
 
+  You are expected to see the rendered simulation as below:
+
+  <p align="center">
+      <img src="demos/hand_sphere_sim.gif" alt="hand_sphere" width="500" /></p>
+
   Here, you can also try other models provided in `assets` folder (models are described by `xml` configuration files).
+
+  
 
 - `examples/test_finger_flick_optimize.py` provides an example for using the backward gradients of the simulation. In this example, we use gradient-based optimization to optimize the control sequence of a pendulum finger model to flick a cube to a target location. Run it by:
 

@@ -12,6 +12,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser('Test forward and rendering of simulation')
     parser.add_argument("--model", type = str, default = 'finger_torque') 
     parser.add_argument('--gradient', action = 'store_true')
+    parser.add_argument("--record", action = "store_true")
 
     args = parser.parse_args()
 
@@ -65,4 +66,4 @@ if __name__ == '__main__':
 
     print('FPS (forward only) = {:.1f}, FPS (with gradient) = {:.1f}'.format(fps_forward_only, fps_with_gradient))
 
-    SimRenderer.replay(sim, record = False) # render the simulation replay video
+    SimRenderer.replay(sim, record = args.record, record_path = os.path.join('simulation_record', '{}.mp4'.format(args.model))) # render the simulation replay video
