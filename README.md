@@ -1,8 +1,10 @@
-# DiffHand
+# DiffRedMax (previously DiffHand)
 
-This repository contains the implementation for the paper [An End-to-End Differentiable Framework for Contact-Aware Robot Design](http://diffhand.csail.mit.edu/) (**RSS 2021**). 
+This repository contains the simulator developed for the paper [An End-to-End Differentiable Framework for Contact-Aware Robot Design](http://diffhand.csail.mit.edu/) (**RSS 2021**) and [Efficient Tactile Simulation with Differentiability for Robotic Manipulation](http://people.csail.mit.edu/jiex/papers/TactileSim/index.html) (**CoRL 2022**). 
 
-In this paper, we propose a fully differentiable pipeline to jointly optimize the morphology and control of manipulator robots. At the core of the framework is a deformation-based morphology parameterization and a differentiable simulation.  
+DiffRedMax is a differentiable simulator with penalty-based contact model and supports implicit time integration. It also supports simulating dense tactile force field of both normal and shear directional tactile forces. It also provides the analytical first-order simulation gradients with respect to all the control input and simulation parameters (including kinemactics and dynamics parameters).
+
+In [An End-to-End Differentiable Framework for Contact-Aware Robot Design](http://diffhand.csail.mit.edu/), we propose a fully differentiable pipeline to jointly optimize the morphology and control of manipulator robots. At the core of the framework is a deformation-based morphology parameterization and a differentiable simulation.  
 
 The framework itself is general and not limited to manipulator robots, we select the case study of manipulator robots because of its complexity and contact-rich nature. Welcome to try our code on any other types robots as well.
 
@@ -59,8 +61,8 @@ We provide a docker installation in the `docker` folder.  Follow the readme inst
 
 There are two main components of the code base:
 
-- **Differentiable RedMax**: `DiffHand/core`. The differentiable redmax is based off [RedMax](https://people.engr.tamu.edu/sueda/projects/redmax/index.html) and further makes if fully differentiable. It provides the simulation derivatives w.r.t. both simulation parameters (kinematics- and dynamics-related parameter) and control actions. It is implemented in C++ for computing efficiency. We provide a [simulation document](https://people.csail.mit.edu/jiex/papers/DiffHand/redmax_doc.pdf) for mathematical details of our differentiable RedMax.
-- **Morphology and Control Co-Optimization**: `DiffHand/examples`. We build an end-to-end differentiable framework to co-optimize both the morphology and control of manipulators. We use L-BFGS-B as our default gradient-based optimizer and also provides the source code for the gradient-free baseline methods.
+- **Differentiable RedMax**: `core`. The differentiable redmax is based off [RedMax](https://people.engr.tamu.edu/sueda/projects/redmax/index.html) and further makes if fully differentiable. It provides the simulation derivatives w.r.t. both simulation parameters (kinematics- and dynamics-related parameter) and control actions. It is implemented in C++ for computing efficiency. We provide a [simulation document](https://people.csail.mit.edu/jiex/papers/DiffHand/redmax_doc.pdf) for mathematical details of our differentiable RedMax.
+- **Morphology and Control Co-Optimization**: `examples/DiffHand`. The examples in [RSS 2021 paper](http://diffhand.csail.mit.edu/). We build an end-to-end differentiable framework to co-optimize both the morphology and control of manipulators. We use L-BFGS-B as our default gradient-based optimizer and also provides the source code for the gradient-free baseline methods.
 
 
 
@@ -68,9 +70,9 @@ There are two main components of the code base:
 
 It is recommended to try out the scripts in **play with redmax simulation** first if you would like to get familiar with simulation interface.
 
-#### Run the examples in the paper
+#### Run the examples in the DiffHand paper
 
-We include the four co-design tasks from the paper in the `examples` folder. 
+We include the four co-design tasks from the paper in the `examples/DiffHand` folder. 
 
 - **Finger Reach**
 - **Rotate Cube**
@@ -80,7 +82,7 @@ We include the four co-design tasks from the paper in the `examples` folder.
 To run the `L-BFGS-B` optimization with our deformation-based design parameterization, you can enter the corresponding folder and run `demo.sh` under the folder. For example, to run **Finger Reach**,
 
 ```
-cd examples/rss_finger_reach
+cd examples/DiffHand/rss_finger_reach
 bash demo.sh
 ```
 
@@ -111,7 +113,7 @@ We provide several examples to test the forward simulation and its differentiabi
 
   Here, you can also try other models provided in `assets` folder (models are described by `xml` configuration files).
 
-- `examples/test_finger_flick_optimize.py` provides an example for using the backward gradients of the simulation. In this example, we use gradient-based optimization to optimize the control sequence of a pendulum finger model to flick a cube to a target location. run it by:
+- `examples/test_finger_flick_optimize.py` provides an example for using the backward gradients of the simulation. In this example, we use gradient-based optimization to optimize the control sequence of a pendulum finger model to flick a cube to a target location. Run it by:
 
   ```
   python test_finger_flick_optimize.py
@@ -122,11 +124,23 @@ We provide several examples to test the forward simulation and its differentiabi
   <p align="center">
       <img src="demos/torque_finger_flick_optimized.gif" alt="finger_flick" width="500" /></p>
 
+- `examples/test_tactile_sim.py` provides an example for simulating the dense tactile force field of a rolling ball experiment. Run it by:
+  ```
+  python test_tactile_sim.py --render
+  ```
+  
+  It will first show two windows (as shown first row below) showing animated depth map of normal tactile force field (left) and animated tactile force field (right). Then it will show the simulation animation (second row).
 
+  <p align="center">
+      <img src="demos/tactile_depth_map.gif" alt="tactile_depth_map" width="250" />
+    <img src="demos/tactile_force_map.gif" alt="tactile_force_map" width="250" /></p>
+
+  <p align="center">
+    <img src="demos/tactile_sim.gif" alt="tactile_simf" width="500" /></p>
 
 ## Citation
 
-If you find our paper or code is useful, please consider citing: 
+If you find our papers or code is useful, please consider citing:
 
 ```
 @INPROCEEDINGS{Xu-RSS-21, 
@@ -137,5 +151,15 @@ If you find our paper or code is useful, please consider citing:
     ADDRESS   = {Virtual}, 
     MONTH     = {July}, 
     DOI       = {10.15607/RSS.2021.XVII.008} 
+} 
+```
+
+```
+@INPROCEEDINGS{xu2022efficient,
+    TITLE     = {Efficient Tactile Simulation with Differentiability for Robotic Manipulation},
+    AUTHOR    = {Jie Xu and Sangwoon Kim and Tao Chen and Alberto Rodriguez Garcia and Pulkit Agrawal and Wojciech Matusik and Shinjiro Sueda},
+    BOOKTITLE = {6th Annual Conference on Robot Learning},
+    YEAR      = {2022},
+    URL       = {https://openreview.net/forum?id=6BIffCl6gsM}
 } 
 ```

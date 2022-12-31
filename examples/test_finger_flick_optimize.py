@@ -1,7 +1,7 @@
 '''
 optimize an open-loop action sequence for finger to push a box to a target location
 '''
-from renderer import SimRenderer
+from utils.renderer import SimRenderer
 import numpy as np
 import scipy.optimize
 import redmax_py as redmax

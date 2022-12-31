@@ -1,7 +1,7 @@
 '''
 test forward and rendering
 '''
-from renderer import SimRenderer
+from utils.renderer import SimRenderer
 import numpy as np
 import redmax_py as redmax
 import os
