@@ -1343,8 +1343,6 @@ void Simulation::integration_BDF1(
         _backward_info._H_lu.push_back(H.partialPivLu());
 
         _time_report._time_save_backward += clock() - t_save_backward_start;
-        
-        evaluate_g_BDF1(q1, g);
     } 
     // else {
     //     VectorX g;
