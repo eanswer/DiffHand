@@ -13,6 +13,8 @@ public:
     bool _rendering_mesh_exists;
     Matrix3X _V;            // vertices
     Matrix3Xi _F;            // face elements
+    SE3 _E_oi;               // transform from body frame to obj frame
+    SE3 _E_io;               // transform from obj frame to body frame
 
     BodyAbstract(Simulation* sim, Joint* joint, 
         Matrix3 R_ji, Vector3 p_ji,

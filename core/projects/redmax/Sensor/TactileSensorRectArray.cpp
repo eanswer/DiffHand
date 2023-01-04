@@ -1,5 +1,7 @@
 #include "Sensor/TactileSensorRectArray.h"
 #include "Body/Body.h"
+#include "Body/BodyMeshObj.h"
+#include "Body/BodyAbstract.h"
 
 namespace redmax {
 
@@ -15,6 +17,25 @@ TactileSensorRectArray::TactileSensorRectArray(
     _axis0 = axis0;
     _axis1 = axis1;
     _resolution = resolution;
+
+    // in this case, current R_it is actually R_ot while object and body frames are not necessarily aligned.
+    if (dynamic_cast<BodyMeshObj*>(const_cast<Body*>(body)) != nullptr) {
+        Matrix4 _E_it = dynamic_cast<BodyMeshObj*>(const_cast<Body*>(body))->_E_io;
+        Matrix3 _R_it = _E_it.topLeftCorner(3, 3);
+        Vector3 _p_it = _E_it.topRightCorner(3, 1);
+        _axis0 = _R_it * _axis0;
+        _axis1 = _R_it * _axis1;
+        _rect_pos0 = _R_it * _rect_pos0 + _p_it;
+        _rect_pos1 = _R_it * _rect_pos1 + _p_it;
+    } else if (dynamic_cast<BodyAbstract*>(const_cast<Body*>(body)) != nullptr) {
+        Matrix4 _E_it = dynamic_cast<BodyAbstract*>(const_cast<Body*>(body))->_E_io;
+        Matrix3 _R_it = _E_it.topLeftCorner(3, 3);
+        Vector3 _p_it = _E_it.topRightCorner(3, 1);
+        _axis0 = _R_it * _axis0;
+        _axis1 = _R_it * _axis1;
+        _rect_pos0 = _R_it * _rect_pos0 + _p_it;
+        _rect_pos1 = _R_it * _rect_pos1 + _p_it;
+    }
 
     init();
 }

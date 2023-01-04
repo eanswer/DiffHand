@@ -23,6 +23,8 @@ BodyAbstract::BodyAbstract(
         _rendering_mesh_exists = false;
     }
     
+    _E_oi = Matrix4::Identity();
+    _E_io = Matrix4::Identity();
     if (Inertia.size() == 6) { // xx, xy, xz, yy, yz, zz // DEBUG: TO BE TESTED
         // get the principal axes for inertia tensor by eigenvalue decomposition
         // https://en.wikipedia.org/wiki/Moment_of_inertia#Principal_axes
@@ -50,6 +52,9 @@ BodyAbstract::BodyAbstract(
 
         // update the collision mesh R
         collision_frame_R = R_oldi_i.transpose() * collision_frame_R;
+
+        _E_oi.topLeftCorner(3, 3) = R_oldi_i;
+        _E_io = math::Einv(_E_oi);
     } else {
         _Inertia.head(3) = Inertia;
         _Inertia.tail(3).setConstant(_mass);

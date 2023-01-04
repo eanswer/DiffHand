@@ -1,5 +1,7 @@
 #include "Sensor/TactileSensorAbstract.h"
 #include "Body/Body.h"
+#include "Body/BodyMeshObj.h"
+#include "Body/BodyAbstract.h"
 
 namespace redmax {
 
@@ -13,6 +15,19 @@ TactileSensorAbstract::TactileSensorAbstract(
     _spec_filename = spec_filename;
     _R_it = R_it;
     _p_it = p_it;
+
+    // in this case, current R_it is actually R_ot while object and body frames are not necessarily aligned.
+    if (dynamic_cast<BodyMeshObj*>(const_cast<Body*>(body)) != nullptr) { 
+        Matrix4 _E_ot = math::SE(_R_it, _p_it);
+        Matrix4 _E_it = dynamic_cast<BodyMeshObj*>(const_cast<Body*>(body))->_E_io * _E_ot;
+        _R_it = _E_it.topLeftCorner(3, 3);
+        _p_it = _E_it.topRightCorner(3, 1);
+    } else if (dynamic_cast<BodyAbstract*>(const_cast<Body*>(body)) != nullptr) {
+        Matrix4 _E_ot = math::SE(_R_it, _p_it);
+        Matrix4 _E_it = dynamic_cast<BodyAbstract*>(const_cast<Body*>(body))->_E_io * _E_ot;
+        _R_it = _E_it.topLeftCorner(3, 3);
+        _p_it = _E_it.topRightCorner(3, 1);
+    }
 
     init();
 }

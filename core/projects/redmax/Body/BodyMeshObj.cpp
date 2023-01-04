@@ -23,7 +23,7 @@ BodyMeshObj::BodyMeshObj(
 
     process_mesh();
 
-    if (transform_type == BODY_TO_JOINT) {
+    if (transform_type == BODY_TO_JOINT) { // this option is not recommended since the mesh will go through unknown transform during initialization to diagonolize the inertia tensor
         set_transform(R, p);
     } else if (transform_type == OBJ_TO_WOLRD) {
         // E_ji = E_j0 * E_0o * E_oi
