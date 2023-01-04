@@ -71,6 +71,7 @@ void TactileSensor::compute_tactile_values() {
                         }
                     }
 
+                    _depth[i] = -d;
                     Vector3 force = fc + ft; // contact force in local body frame
                     _shear_force[i](0) = force.dot(_axis0_i[i]);
                     _shear_force[i](1) = force.dot(_axis1_i[i]);
