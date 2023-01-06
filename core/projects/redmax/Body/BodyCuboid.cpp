@@ -183,8 +183,6 @@ void BodyCuboid::collision(
     tdot = (I - n * n.transpose()) * vw;
 }
 
-// refer to https://www.overleaf.com/project/5cd0a78e0e41fe0f8632a42a
-// section 1.4: General Penalty-based Contact
 void BodyCuboid::collision(
     Vector3 xw, Vector3 xw_dot, /* input */
     dtype &d, Vector3 &n,  /* output */
