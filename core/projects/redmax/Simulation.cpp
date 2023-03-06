@@ -1086,6 +1086,12 @@ void Simulation::forward(int num_steps, bool verbose, bool test_derivatives, boo
             }
         } else if (_options->_integrator == "SDIRK2") {
             integration_SDIRK2(q, qdot, _options->_h, q_next, qdot_next);
+        } else if (_options->_integrator == "Euler") {
+            integration_Euler(q, qdot, _options->_h, q_next, qdot_next);
+        } else if (_options->_integrator == "Midpoint") {
+            integration_Midpoint(q, qdot, _options->_h, q_next, qdot_next);
+        } else if (_options->_integrator == "RK4") {
+            integration_RK4(q, qdot, _options->_h, q_next, qdot_next);
         } else {
             std::cerr << "[Error] Integrator " << _options->_integrator << " has not been implemented." << std::endl;
             throw "error";
@@ -1320,6 +1326,87 @@ void Simulation::evaluate_g_with_derivatives_BDF1(const VectorX& q1, VectorX& g,
             _backward_info._dg_du.push_back(-_h * _h * _dfr_du);
         }
     }
+}
+
+void Simulation::integration_Euler(
+    const VectorX q0, const VectorX qdot0, const dtype h,
+        VectorX& q1, VectorX& qdot1) {
+    _q0 = q0;
+    _qdot0 = qdot0;
+    _h = h;
+    MatrixX M;
+    VectorX f;
+
+    set_state(q0, qdot0);
+    update_robot();
+    computeMatrices(M, f);
+
+    q1 = q0 + h * qdot0;
+    qdot1 = qdot0 + h * M.inverse() * f;
+}
+
+void Simulation::integration_Midpoint(
+    const VectorX q0, const VectorX qdot0, const dtype h,
+        VectorX& q1, VectorX& qdot1) {
+    _q0 = q0;
+    _qdot0 = qdot0;
+    _h = h;
+    MatrixX M;
+    VectorX f;
+    VectorX q0_5, qdot0_5;
+
+    set_state(q0, qdot0);
+    update_robot();
+    computeMatrices(M, f);
+
+    q0_5 = q0 + h / 2. * qdot0;
+    qdot0_5 = qdot0 + h / 2. * M.inverse() * f;
+
+    set_state(q0_5, qdot0_5);
+    update_robot();
+    computeMatrices(M, f);
+
+    q1 = q0 + h * qdot0_5;
+    qdot1 = qdot0 + h * M.inverse() * f;
+}
+
+void Simulation::integration_RK4(
+    const VectorX q0, const VectorX qdot0, const dtype h,
+        VectorX& q1, VectorX& qdot1) {
+    _q0 = q0;
+    _qdot0 = qdot0;
+    _h = h;
+    MatrixX M;
+    VectorX f;
+    VectorX kq1, kq2, kq3, kq4;
+    VectorX kqdot1, kqdot2, kqdot3, kqdot4;
+
+    kq1 = qdot0;
+    set_state(q0, qdot0);
+    update_robot();
+    computeMatrices(M, f);
+    kqdot1 = M.inverse() * f;
+
+    kq2 = qdot0 + h / 2. * kqdot1;
+    set_state(q0 + h / 2. * kq1, kq2);
+    update_robot();
+    computeMatrices(M, f);
+    kqdot2 = M.inverse() * f;
+
+    kq3 = qdot0 + h / 2. * kqdot2;
+    set_state(q0 + h / 2. * kq2, kq3);
+    update_robot();
+    computeMatrices(M, f);
+    kqdot3 = M.inverse() * f;
+
+    kq4 = qdot0 + h * kqdot3;
+    set_state(q0 + h * kq3, kq4);
+    update_robot();
+    computeMatrices(M, f);
+    kqdot4 = M.inverse() * f;
+
+    q1 = q0 + h / 6. * (kq1 + 2 * kq2 + 2 * kq3 + kq4);
+    qdot1 = qdot0 + h / 6. * (kqdot1 + 2 * kqdot2 + 2 * kqdot3 + kqdot4);
 }
 
 void Simulation::integration_BDF1(

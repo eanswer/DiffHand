@@ -12,6 +12,7 @@
 #include "Body/BodySphere.h"
 #include "Body/BodyAbstract.h"
 #include "Body/BodyCapsule.h"
+#include "Body/BodySDFObj.h"
 #include "Joint/JointFixed.h"
 #include "Joint/JointRevolute.h"
 #include "Joint/JointPrismatic.h"
@@ -25,6 +26,7 @@
 #include "Force/ForceGroundContact.h"
 #include "Force/ForceCuboidCuboidContact.h"
 #include "Force/ForceGeneralPrimitiveContact.h"
+#include "Force/ForceGeneralSDFContact.h"
 #include "Actuator/Actuator.h"
 #include "Actuator/ActuatorMotor.h"
 #include "EndEffector/EndEffector.h"
@@ -337,6 +339,19 @@ Joint* Simulation::parse_from_xml_file(pugi::xml_node root, pugi::xml_node node,
                         }
                         ForceGeneralPrimitiveContact* force = new ForceGeneralPrimitiveContact(this, it1->second, it2->second, kn, kt, mu, damping, render_contact_points);
                         robot->add_force(force);
+                    } else if ((std::string)(child.name()) == "general_SDF_contact") {
+                        auto it1 = _body_map.find(child.attribute("general_body").value());
+                        if (it1 == _body_map.end()) {
+                            std::string error_msg = "General contact body name error: " + (std::string)(child.attribute("general_body").value());
+                            throw_error(error_msg);
+                        }
+                        auto it2 = _body_map.find(child.attribute("SDF_body").value());
+                        if (it2 == _body_map.end()) {
+                            std::string error_msg = "SDF contact body name error: " + (std::string)(child.attribute("SDF_body").value());
+                            throw_error(error_msg);
+                        }
+                        ForceGeneralSDFContact* force = new ForceGeneralSDFContact(this, it1->second, it2->second, kn, kt, mu, damping);
+                        robot->add_force(force);
                     }
                 }
             }
@@ -597,7 +612,7 @@ Joint* Simulation::parse_from_xml_file(pugi::xml_node root, pugi::xml_node node,
             } else if (type == "sphere") {
                 dtype radius = (dtype)body_node.attribute("radius").as_float();
                 body = new BodySphere(this, joint, radius, R, pos, density);
-            } else if (type == "mesh") {
+            } else if (type == "mesh" || type == "SDF") {
                 BodyMeshObj::TransformType transform_type = BodyMeshObj::TransformType::BODY_TO_JOINT;
                 if (body_node.attribute("transform_type")) {
                     std::string transform_type_str = body_node.attribute("transform_type").value();
@@ -612,9 +627,37 @@ Joint* Simulation::parse_from_xml_file(pugi::xml_node root, pugi::xml_node node,
                         throw_error(error_msg);
                     }
                 }
+                Vector3 scale = Vector3::Ones();
+                if (body_node.attribute("scale")) {
+                    scale = str_to_eigen(body_node.attribute("scale").value());
+                }
                 std::string filename = body_node.attribute("filename").value();
                 filename = _asset_folder + "//" + filename;
-                body = new BodyMeshObj(this, joint, filename, R, pos, transform_type, density, scale);
+                                if (type == "mesh") {
+                    body = new BodyMeshObj(this, joint, filename, R, pos, transform_type, density, scale);
+                } else if (type == "SDF") {
+                    dtype dx = 0.05;
+                    if (body_node.attribute("dx")) {
+                        dx = (dtype)body_node.attribute("dx").as_float();
+                    }
+                    int res = 20;
+                    if (body_node.attribute("res")) {
+                        res = body_node.attribute("res").as_int();
+                    }
+                    dtype col_th = 0.0;
+                    if (body_node.attribute("col_th")) {
+                        col_th = (dtype)body_node.attribute("col_th").as_float();
+                    }
+                    bool load_sdf = false;
+                    if (body_node.attribute("load_sdf")) {
+                        load_sdf = body_node.attribute("load_sdf").as_bool();
+                    }
+                    bool save_sdf = false;
+                    if (body_node.attribute("save_sdf")) {
+                        save_sdf = body_node.attribute("save_sdf").as_bool();
+                    }
+                    body = new BodySDFObj(this, joint, filename, R, pos, dx, res, col_th, transform_type, density, scale, load_sdf, save_sdf);
+                }
                 
             } else if (type == "abstract") {
                 dtype mass = (dtype)body_node.attribute("mass").as_float();

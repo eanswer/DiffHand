@@ -1,0 +1,336 @@
+running install
+running bdist_egg
+running egg_info
+writing redmax_py.egg-info/PKG-INFO
+writing dependency_links to redmax_py.egg-info/dependency_links.txt
+writing top-level names to redmax_py.egg-info/top_level.txt
+reading manifest file 'redmax_py.egg-info/SOURCES.txt'
+writing manifest file 'redmax_py.egg-info/SOURCES.txt'
+installing library code to build/bdist.linux-x86_64/egg
+running install_lib
+running build_ext
+-- The C compiler identification is GNU 11.3.0
+-- The CXX compiler identification is GNU 11.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found OpenGL: /usr/lib/x86_64-linux-gnu/libGL.so   
+-- pybind11 v2.10.3 
+-- Found PythonInterp: /home/idanshen/anaconda3/envs/tactile_control_env/bin/python (found suitable version "3.8", minimum required is "3.6") 
+-- Found PythonLibs: /home/idanshen/anaconda3/envs/tactile_control_env/lib/libpython3.8.so
+-- Performing Test HAS_FLTO
+-- Performing Test HAS_FLTO - Success
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE  
+-- Could NOT find Vulkan (missing: VULKAN_LIBRARY VULKAN_INCLUDE_DIR) 
+-- Could NOT find Doxygen (missing: DOXYGEN_EXECUTABLE) 
+-- Using X11 for window creation
+-- Found X11: /usr/include   
+-- Looking for XOpenDisplay in /usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so
+-- Looking for XOpenDisplay in /usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so - found
+-- Looking for gethostbyname
+-- Looking for gethostbyname - found
+-- Looking for connect
+-- Looking for connect - found
+-- Looking for remove
+-- Looking for remove - found
+-- Looking for shmat
+-- Looking for shmat - found
+-- Looking for IceConnectionNumber in ICE
+-- Looking for IceConnectionNumber in ICE - found
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/idanshen/tactile2/TactileSimulation/externals/DiffHand/core/build/temp.linux-x86_64-cpython-38
+[  0%] Building C object externals/CMakeFiles/glew.dir/glew/src/glew.c.o
+[  0%] Building C object externals/glfw/src/CMakeFiles/glfw.dir/context.c.o
+[  1%] Building C object externals/glfw/src/CMakeFiles/glfw.dir/init.c.o
+[  1%] Building CXX object externals/tiny_obj_loader/CMakeFiles/tiny_obj_loader.dir/tiny_obj_loader.cpp.o
+[  1%] Building CXX object externals/pugixml/CMakeFiles/pugixml.dir/src/pugixml.cpp.o
+[  1%] Building CXX object externals/sdfgen/CMakeFiles/sdfgen.dir/makelevelset3.cpp.o
+[  2%] Building C object externals/glfw/src/CMakeFiles/glfw.dir/input.c.o
+[  2%] Building C object externals/glfw/src/CMakeFiles/glfw.dir/monitor.c.o
+[  3%] Building C object externals/glfw/src/CMakeFiles/glfw.dir/vulkan.c.o
+[  3%] Building C object externals/glfw/src/CMakeFiles/glfw.dir/window.c.o
+[  4%] Building C object externals/glfw/src/CMakeFiles/glfw.dir/x11_init.c.o
+[  4%] Building C object externals/glfw/src/CMakeFiles/glfw.dir/x11_monitor.c.o
+[  5%] Building C object externals/glfw/src/CMakeFiles/glfw.dir/x11_window.c.o
+[  5%] Building C object externals/glfw/src/CMakeFiles/glfw.dir/xkb_unicode.c.o
+[  5%] Building C object externals/glfw/src/CMakeFiles/glfw.dir/linux_joystick.c.o
+[  6%] Building C object externals/glfw/src/CMakeFiles/glfw.dir/posix_time.c.o
+[  6%] Building C object externals/glfw/src/CMakeFiles/glfw.dir/posix_tls.c.o
+[  7%] Building C object externals/glfw/src/CMakeFiles/glfw.dir/glx_context.c.o
+[  7%] Building C object externals/glfw/src/CMakeFiles/glfw.dir/egl_context.c.o
+[  8%] Linking CXX static library libsdfgen.a
+[  8%] Built target sdfgen
+[  9%] Linking C static library libglfw3.a
+[  9%] Built target glfw
+[ 10%] Building C object externals/glfw/examples/CMakeFiles/simple.dir/simple.c.o
+[ 10%] Building C object externals/glfw/examples/CMakeFiles/boing.dir/boing.c.o
+[ 10%] Building C object externals/glfw/examples/CMakeFiles/particles.dir/particles.c.o
+[ 10%] Building C object externals/glfw/examples/CMakeFiles/gears.dir/gears.c.o
+[ 11%] Building C object externals/glfw/examples/CMakeFiles/heightmap.dir/heightmap.c.o
+[ 11%] Building C object externals/glfw/examples/CMakeFiles/heightmap.dir/__/deps/glad.c.o
+[ 12%] Building C object externals/glfw/examples/CMakeFiles/simple.dir/__/deps/glad.c.o
+[ 12%] Building C object externals/glfw/examples/CMakeFiles/gears.dir/__/deps/glad.c.o
+[ 12%] Building C object externals/glfw/examples/CMakeFiles/boing.dir/__/deps/glad.c.o
+[ 13%] Building C object externals/glfw/examples/CMakeFiles/particles.dir/__/deps/tinycthread.c.o
+[ 13%] Building C object externals/glfw/examples/CMakeFiles/particles.dir/__/deps/getopt.c.o
+[ 14%] Linking C executable gears
+[ 14%] Linking C executable simple
+[ 15%] Linking C executable boing
+[ 16%] Building C object externals/glfw/examples/CMakeFiles/particles.dir/__/deps/glad.c.o
+[ 17%] Linking C executable heightmap
+[ 17%] Built target gears
+[ 17%] Built target simple
+[ 18%] Building C object externals/glfw/examples/CMakeFiles/splitview.dir/splitview.c.o
+[ 19%] Building C object externals/glfw/examples/CMakeFiles/wave.dir/wave.c.o
+[ 19%] Built target boing
+[ 19%] Building C object externals/glfw/tests/CMakeFiles/clipboard.dir/clipboard.c.o
+[ 19%] Built target heightmap
+[ 20%] Building C object externals/glfw/tests/CMakeFiles/clipboard.dir/__/deps/getopt.c.o
+[ 20%] Building C object externals/glfw/tests/CMakeFiles/clipboard.dir/__/deps/glad.c.o
+[ 20%] Building C object externals/glfw/tests/CMakeFiles/events.dir/events.c.o
+[ 20%] Building C object externals/glfw/examples/CMakeFiles/splitview.dir/__/deps/glad.c.o
+[ 20%] Linking C executable particles
+[ 20%] Built target particles
+[ 20%] Building C object externals/glfw/tests/CMakeFiles/msaa.dir/msaa.c.o
+[ 21%] Building C object externals/glfw/tests/CMakeFiles/events.dir/__/deps/getopt.c.o
+[ 22%] Linking C executable clipboard
+[ 22%] Building C object externals/glfw/tests/CMakeFiles/events.dir/__/deps/glad.c.o
+[ 23%] Building C object externals/glfw/tests/CMakeFiles/msaa.dir/__/deps/getopt.c.o
+[ 23%] Built target clipboard
+[ 23%] Building C object externals/glfw/tests/CMakeFiles/msaa.dir/__/deps/glad.c.o
+[ 23%] Building C object externals/glfw/tests/CMakeFiles/gamma.dir/gamma.c.o
+[ 24%] Linking C executable splitview
+[ 24%] Built target splitview
+[ 24%] Building C object externals/glfw/tests/CMakeFiles/gamma.dir/__/deps/getopt.c.o
+[ 24%] Building C object externals/glfw/tests/CMakeFiles/glfwinfo.dir/glfwinfo.c.o
+[ 25%] Building C object externals/glfw/tests/CMakeFiles/gamma.dir/__/deps/glad.c.o
+[ 26%] Linking C executable events
+[ 27%] Linking C executable msaa
+[ 27%] Built target events
+[ 28%] Building C object externals/glfw/tests/CMakeFiles/iconify.dir/iconify.c.o
+[ 29%] Building C object externals/glfw/tests/CMakeFiles/glfwinfo.dir/__/deps/getopt.c.o
+[ 29%] Built target msaa
+[ 29%] Building C object externals/glfw/tests/CMakeFiles/joysticks.dir/joysticks.c.o
+[ 29%] Building C object externals/glfw/tests/CMakeFiles/glfwinfo.dir/__/deps/glad.c.o
+[ 29%] Linking C executable gamma
+[ 29%] Building C object externals/glfw/tests/CMakeFiles/iconify.dir/__/deps/getopt.c.o
+[ 30%] Building C object externals/glfw/tests/CMakeFiles/joysticks.dir/__/deps/glad.c.o
+[ 30%] Built target gamma
+[ 30%] Building C object externals/glfw/examples/CMakeFiles/wave.dir/__/deps/glad.c.o
+[ 30%] Building C object externals/glfw/tests/CMakeFiles/iconify.dir/__/deps/glad.c.o
+[ 30%] Linking C executable glfwinfo
+[ 30%] Built target glfwinfo
+[ 30%] Building C object externals/glfw/tests/CMakeFiles/monitors.dir/monitors.c.o
+[ 30%] Linking C executable joysticks
+[ 31%] Building C object externals/glfw/tests/CMakeFiles/monitors.dir/__/deps/getopt.c.o
+[ 32%] Linking C executable iconify
+[ 32%] Built target joysticks
+[ 32%] Building C object externals/glfw/tests/CMakeFiles/monitors.dir/__/deps/glad.c.o
+[ 33%] Building C object externals/glfw/tests/CMakeFiles/reopen.dir/reopen.c.o
+[ 33%] Built target iconify
+[ 33%] Building C object externals/glfw/tests/CMakeFiles/reopen.dir/__/deps/glad.c.o
+[ 33%] Building C object externals/glfw/tests/CMakeFiles/cursor.dir/cursor.c.o
+[ 34%] Building C object externals/glfw/tests/CMakeFiles/cursor.dir/__/deps/glad.c.o
+[ 34%] Building C object externals/glfw/tests/CMakeFiles/empty.dir/empty.c.o
+[ 35%] Linking C executable monitors
+[ 36%] Linking C executable reopen
+[ 37%] Building C object externals/glfw/tests/CMakeFiles/empty.dir/__/deps/tinycthread.c.o
+[ 37%] Built target monitors
+[ 37%] Building C object externals/glfw/tests/CMakeFiles/icon.dir/icon.c.o
+[ 37%] Built target reopen
+[ 38%] Building C object externals/glfw/tests/CMakeFiles/icon.dir/__/deps/glad.c.o
+[ 38%] Linking C executable cursor
+[ 38%] Building C object externals/glfw/tests/CMakeFiles/empty.dir/__/deps/glad.c.o
+[ 38%] Built target cursor
+[ 38%] Building C object externals/glfw/tests/CMakeFiles/sharing.dir/sharing.c.o
+[ 38%] Building C object externals/glfw/tests/CMakeFiles/tearing.dir/tearing.c.o
+[ 38%] Building C object externals/glfw/tests/CMakeFiles/sharing.dir/__/deps/glad.c.o
+[ 38%] Building C object externals/glfw/tests/CMakeFiles/tearing.dir/__/deps/getopt.c.o
+[ 39%] Building C object externals/glfw/tests/CMakeFiles/tearing.dir/__/deps/glad.c.o
+[ 39%] Linking C executable icon
+[ 40%] Linking C executable empty
+[ 40%] Built target icon
+[ 41%] Building C object externals/glfw/tests/CMakeFiles/threads.dir/threads.c.o
+[ 41%] Built target empty
+[ 41%] Building C object externals/glfw/tests/CMakeFiles/timeout.dir/timeout.c.o
+[ 42%] Linking C executable sharing
+[ 42%] Building C object externals/glfw/tests/CMakeFiles/threads.dir/__/deps/tinycthread.c.o
+[ 43%] Building C object externals/glfw/tests/CMakeFiles/timeout.dir/__/deps/glad.c.o
+[ 43%] Built target sharing
+[ 43%] Linking C executable tearing
+[ 44%] Building C object externals/glfw/tests/CMakeFiles/title.dir/title.c.o
+[ 44%] Building C object externals/glfw/tests/CMakeFiles/threads.dir/__/deps/glad.c.o
+[ 44%] Building C object externals/glfw/tests/CMakeFiles/title.dir/__/deps/glad.c.o
+[ 44%] Built target tearing
+[ 44%] Building C object externals/glfw/tests/CMakeFiles/windows.dir/windows.c.o
+[ 45%] Building C object externals/glfw/tests/CMakeFiles/windows.dir/__/deps/getopt.c.o
+[ 46%] Linking C executable wave
+[ 46%] Linking C executable timeout
+[ 46%] Building C object externals/glfw/tests/CMakeFiles/windows.dir/__/deps/glad.c.o
+[ 46%] Built target wave
+[ 46%] Built target timeout
+[ 46%] Linking CXX static library libtiny_obj_loader.a
+[ 47%] Linking C executable threads
+[ 47%] Built target tiny_obj_loader
+[ 47%] Linking C executable title
+[ 47%] Built target threads
+[ 47%] Built target title
+[ 48%] Linking C executable windows
+[ 48%] Built target windows
+[ 49%] Linking C static library libglew.a
+[ 49%] Built target glew
+[ 49%] Building CXX object externals/CMakeFiles/imgui.dir/imgui/imgui.cpp.o
+[ 50%] Building CXX object externals/CMakeFiles/imgui.dir/imgui/imgui_demo.cpp.o
+[ 50%] Building CXX object externals/CMakeFiles/imgui.dir/imgui/imgui_draw.cpp.o
+[ 51%] Linking CXX static library libpugixml.a
+[ 51%] Built target pugixml
+[ 52%] Linking CXX static library libimgui.a
+[ 52%] Built target imgui
+[ 52%] Building CXX object projects/opengl_viewer/CMakeFiles/opengl_viewer.dir/src/bounding_box.cpp.o
+[ 52%] Building CXX object projects/opengl_viewer/CMakeFiles/opengl_viewer.dir/src/dynamic_opengl_light.cpp.o
+[ 53%] Building CXX object projects/opengl_viewer/CMakeFiles/opengl_viewer.dir/src/dynamic_opengl_shape.cpp.o
+[ 53%] Building CXX object projects/opengl_viewer/CMakeFiles/opengl_viewer.dir/src/geometry.cpp.o
+[ 54%] Building CXX object projects/opengl_viewer/CMakeFiles/opengl_viewer.dir/src/image.cpp.o
+[ 54%] Building CXX object projects/opengl_viewer/CMakeFiles/opengl_viewer.dir/src/imgui_wrapper.cpp.o
+[ 55%] Building CXX object projects/opengl_viewer/CMakeFiles/opengl_viewer.dir/src/opengl_light.cpp.o
+[ 55%] Building CXX object projects/opengl_viewer/CMakeFiles/opengl_viewer.dir/src/opengl_shape.cpp.o
+[ 56%] Building CXX object projects/opengl_viewer/CMakeFiles/opengl_viewer.dir/src/sample_imgui_wrapper.cpp.o
+[ 56%] Building CXX object projects/opengl_viewer/CMakeFiles/opengl_viewer.dir/src/shader_program.cpp.o
+[ 56%] Building CXX object projects/opengl_viewer/CMakeFiles/opengl_viewer.dir/src/static_opengl_light.cpp.o
+[ 57%] Building CXX object projects/opengl_viewer/CMakeFiles/opengl_viewer.dir/src/static_opengl_shape.cpp.o
+[ 57%] Building CXX object projects/opengl_viewer/CMakeFiles/opengl_viewer.dir/src/viewer.cpp.o
+[ 58%] Linking CXX static library libopengl_viewer.a
+[ 58%] Built target opengl_viewer
+[ 59%] Building CXX object projects/test_opengl_viewer/CMakeFiles/test_opengl_viewer.dir/src/checkerboard.cpp.o
+[ 59%] Building CXX object projects/test_opengl_viewer/CMakeFiles/test_opengl_viewer.dir/src/point_light_shadow.cpp.o
+[ 60%] Building CXX object projects/test_opengl_viewer/CMakeFiles/test_opengl_viewer.dir/src/test_opengl_viewer.cpp.o
+[ 60%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Actuator/Actuator.cpp.o
+[ 60%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/python_interface.cpp.o
+[ 61%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Actuator/ActuatorMotor.cpp.o
+[ 61%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Body/Body.cpp.o
+[ 62%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Actuator/Actuator.cpp.o
+[ 63%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Body/BodyAbstract.cpp.o
+[ 63%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Actuator/ActuatorMotor.cpp.o
+[ 63%] Linking CXX executable test_opengl_viewer
+[ 63%] Built target test_opengl_viewer
+[ 63%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Body/BodyCapsule.cpp.o
+[ 64%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Body/Body.cpp.o
+[ 65%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Body/BodyCuboid.cpp.o
+[ 65%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Body/BodyCylinder.cpp.o
+[ 65%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Body/BodyAbstract.cpp.o
+[ 65%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Body/BodyDesignParameters.cpp.o
+[ 66%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Body/BodyMeshObj.cpp.o
+[ 67%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Body/BodyCapsule.cpp.o
+[ 67%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Body/BodySDFObj.cpp.o
+[ 67%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Body/BodyCuboid.cpp.o
+[ 67%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Body/BodyCylinder.cpp.o
+[ 68%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Body/BodySphere.cpp.o
+[ 68%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/CollisionDetection/CollisionDetection.cpp.o
+[ 69%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/CollisionDetection/ode/odeBoxBox.cpp.o
+[ 69%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/DesignParameters.cpp.o
+[ 70%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/EndEffector/EndEffector.cpp.o
+[ 70%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Force/ForceCuboidCuboidContact.cpp.o
+[ 70%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Force/ForceGeneralPrimitiveContact.cpp.o
+[ 71%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Body/BodyDesignParameters.cpp.o
+[ 71%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Body/BodyMeshObj.cpp.o
+[ 72%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Body/BodySDFObj.cpp.o
+[ 73%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Force/ForceGeneralSDFContact.cpp.o
+[ 73%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Force/ForceGroundContact.cpp.o
+[ 73%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Body/BodySphere.cpp.o
+[ 74%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Joint/Joint.cpp.o
+[ 74%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Joint/JointDesignParameters.cpp.o
+[ 75%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/CollisionDetection/CollisionDetection.cpp.o
+[ 76%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Joint/JointFixed.cpp.o
+[ 76%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/CollisionDetection/ode/odeBoxBox.cpp.o
+[ 77%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/DesignParameters.cpp.o
+[ 77%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/EndEffector/EndEffector.cpp.o
+[ 77%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Force/ForceCuboidCuboidContact.cpp.o
+[ 78%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Force/ForceGeneralPrimitiveContact.cpp.o
+[ 78%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Joint/JointFree2D.cpp.o
+[ 79%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Joint/JointFree3DEuler.cpp.o
+[ 79%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Force/ForceGeneralSDFContact.cpp.o
+[ 79%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Joint/JointFree3DExp.cpp.o
+[ 79%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Joint/JointPlanar.cpp.o
+[ 80%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Joint/JointPrismatic.cpp.o
+[ 81%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Force/ForceGroundContact.cpp.o
+[ 81%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Joint/JointRevolute.cpp.o
+[ 82%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Joint/JointSphericalEuler.cpp.o
+[ 82%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Joint/JointSphericalExp.cpp.o
+[ 83%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Joint/JointTranslational.cpp.o
+[ 83%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Robot.cpp.o
+[ 84%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Sensor/TactileSensor.cpp.o
+[ 84%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Sensor/TactileSensorAbstract.cpp.o
+[ 84%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Sensor/TactileSensorRectArray.cpp.o
+[ 84%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Joint/Joint.cpp.o
+[ 85%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/SimEnvGenerator.cpp.o
+[ 85%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/SimViewer.cpp.o
+[ 86%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Simulation.cpp.o
+[ 86%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Simulation_Constructor.cpp.o
+[ 87%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Joint/JointDesignParameters.cpp.o
+[ 88%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/Test.cpp.o
+[ 88%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Joint/JointFixed.cpp.o
+[ 88%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/VirtualObject/VirtualObject.cpp.o
+[ 89%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/VirtualObject/VirtualObjectCuboid.cpp.o
+[ 90%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Joint/JointFree2D.cpp.o
+[ 90%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/VirtualObject/VirtualObjectSphere.cpp.o
+[ 90%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Joint/JointFree3DEuler.cpp.o
+[ 90%] Building CXX object projects/redmax/CMakeFiles/redmax.dir/main.cpp.o
+[ 90%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Joint/JointFree3DExp.cpp.o
+[ 91%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Joint/JointPlanar.cpp.o
+[ 91%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Joint/JointPrismatic.cpp.o
+[ 92%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Joint/JointRevolute.cpp.o
+[ 92%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Joint/JointSphericalEuler.cpp.o
+[ 93%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Joint/JointSphericalExp.cpp.o
+[ 93%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Joint/JointTranslational.cpp.o
+[ 94%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Robot.cpp.o
+[ 94%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Sensor/TactileSensor.cpp.o
+[ 94%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Sensor/TactileSensorAbstract.cpp.o
+[ 95%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Sensor/TactileSensorRectArray.cpp.o
+[ 95%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/SimEnvGenerator.cpp.o
+[ 96%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/SimViewer.cpp.o
+[ 96%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Simulation.cpp.o
+[ 97%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Simulation_Constructor.cpp.o
+[ 97%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/Test.cpp.o
+[ 98%] Linking CXX executable redmax
+/usr/bin/c++ -DVERSION_INFO=\"0.0.1\" -O3 -DNDEBUG -rdynamic CMakeFiles/redmax.dir/Actuator/Actuator.cpp.o CMakeFiles/redmax.dir/Actuator/ActuatorMotor.cpp.o CMakeFiles/redmax.dir/Body/Body.cpp.o CMakeFiles/redmax.dir/Body/BodyAbstract.cpp.o CMakeFiles/redmax.dir/Body/BodyCapsule.cpp.o CMakeFiles/redmax.dir/Body/BodyCuboid.cpp.o CMakeFiles/redmax.dir/Body/BodyCylinder.cpp.o CMakeFiles/redmax.dir/Body/BodyDesignParameters.cpp.o CMakeFiles/redmax.dir/Body/BodyMeshObj.cpp.o CMakeFiles/redmax.dir/Body/BodySDFObj.cpp.o CMakeFiles/redmax.dir/Body/BodySphere.cpp.o CMakeFiles/redmax.dir/CollisionDetection/CollisionDetection.cpp.o CMakeFiles/redmax.dir/CollisionDetection/ode/odeBoxBox.cpp.o CMakeFiles/redmax.dir/DesignParameters.cpp.o CMakeFiles/redmax.dir/EndEffector/EndEffector.cpp.o CMakeFiles/redmax.dir/Force/ForceCuboidCuboidContact.cpp.o CMakeFiles/redmax.dir/Force/ForceGeneralPrimitiveContact.cpp.o CMakeFiles/redmax.dir/Force/ForceGeneralSDFContact.cpp.o CMakeFiles/redmax.dir/Force/ForceGroundContact.cpp.o CMakeFiles/redmax.dir/Joint/Joint.cpp.o CMakeFiles/redmax.dir/Joint/JointDesignParameters.cpp.o CMakeFiles/redmax.dir/Joint/JointFixed.cpp.o CMakeFiles/redmax.dir/Joint/JointFree2D.cpp.o CMakeFiles/redmax.dir/Joint/JointFree3DEuler.cpp.o CMakeFiles/redmax.dir/Joint/JointFree3DExp.cpp.o CMakeFiles/redmax.dir/Joint/JointPlanar.cpp.o CMakeFiles/redmax.dir/Joint/JointPrismatic.cpp.o CMakeFiles/redmax.dir/Joint/JointRevolute.cpp.o CMakeFiles/redmax.dir/Joint/JointSphericalEuler.cpp.o CMakeFiles/redmax.dir/Joint/JointSphericalExp.cpp.o CMakeFiles/redmax.dir/Joint/JointTranslational.cpp.o CMakeFiles/redmax.dir/Robot.cpp.o CMakeFiles/redmax.dir/Sensor/TactileSensor.cpp.o CMakeFiles/redmax.dir/Sensor/TactileSensorAbstract.cpp.o CMakeFiles/redmax.dir/Sensor/TactileSensorRectArray.cpp.o CMakeFiles/redmax.dir/SimEnvGenerator.cpp.o CMakeFiles/redmax.dir/SimViewer.cpp.o CMakeFiles/redmax.dir/Simulation.cpp.o CMakeFiles/redmax.dir/Simulation_Constructor.cpp.o CMakeFiles/redmax.dir/Test.cpp.o CMakeFiles/redmax.dir/VirtualObject/VirtualObject.cpp.o CMakeFiles/redmax.dir/VirtualObject/VirtualObjectCuboid.cpp.o CMakeFiles/redmax.dir/VirtualObject/VirtualObjectSphere.cpp.o CMakeFiles/redmax.dir/main.cpp.o -o redmax  ../opengl_viewer/libopengl_viewer.a ../../externals/pugixml/libpugixml.a ../../externals/tiny_obj_loader/libtiny_obj_loader.a ../../externals/sdfgen/libsdfgen.a ../../externals/sdfgen/libsdfgen.a ../../externals/libimgui.a ../../externals/libglew.a -lGL -lGLU ../../externals/glfw/src/libglfw3.a -Wl,-Bstatic -lrt -Wl,-Bdynamic -lm -lX11 -lXrandr -lXinerama -lXxf86vm -lXcursor -lX11 -lXi -lXrandr -lXxf86vm -lXinerama -lXcursor -lrt -lm -lpthread -ldl -ldl 
+[ 98%] Built target redmax
+[ 99%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/VirtualObject/VirtualObject.cpp.o
+[ 99%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/VirtualObject/VirtualObjectCuboid.cpp.o
+[ 99%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/VirtualObject/VirtualObjectSphere.cpp.o
+[100%] Building CXX object projects/redmax/CMakeFiles/redmax_py.dir/main.cpp.o
+[100%] Linking CXX shared module /home/idanshen/tactile2/TactileSimulation/externals/DiffHand/core/build/lib.linux-x86_64-cpython-38/redmax_py.cpython-38-x86_64-linux-gnu.so
+/usr/bin/c++ -fPIC -DVERSION_INFO=\"0.0.1\" -O3 -DNDEBUG -flto -shared  -o /home/idanshen/tactile2/TactileSimulation/externals/DiffHand/core/build/lib.linux-x86_64-cpython-38/redmax_py.cpython-38-x86_64-linux-gnu.so CMakeFiles/redmax_py.dir/python_interface.cpp.o CMakeFiles/redmax_py.dir/Actuator/Actuator.cpp.o CMakeFiles/redmax_py.dir/Actuator/ActuatorMotor.cpp.o CMakeFiles/redmax_py.dir/Body/Body.cpp.o CMakeFiles/redmax_py.dir/Body/BodyAbstract.cpp.o CMakeFiles/redmax_py.dir/Body/BodyCapsule.cpp.o CMakeFiles/redmax_py.dir/Body/BodyCuboid.cpp.o CMakeFiles/redmax_py.dir/Body/BodyCylinder.cpp.o CMakeFiles/redmax_py.dir/Body/BodyDesignParameters.cpp.o CMakeFiles/redmax_py.dir/Body/BodyMeshObj.cpp.o CMakeFiles/redmax_py.dir/Body/BodySDFObj.cpp.o CMakeFiles/redmax_py.dir/Body/BodySphere.cpp.o CMakeFiles/redmax_py.dir/CollisionDetection/CollisionDetection.cpp.o CMakeFiles/redmax_py.dir/CollisionDetection/ode/odeBoxBox.cpp.o CMakeFiles/redmax_py.dir/DesignParameters.cpp.o CMakeFiles/redmax_py.dir/EndEffector/EndEffector.cpp.o CMakeFiles/redmax_py.dir/Force/ForceCuboidCuboidContact.cpp.o CMakeFiles/redmax_py.dir/Force/ForceGeneralPrimitiveContact.cpp.o CMakeFiles/redmax_py.dir/Force/ForceGeneralSDFContact.cpp.o CMakeFiles/redmax_py.dir/Force/ForceGroundContact.cpp.o CMakeFiles/redmax_py.dir/Joint/Joint.cpp.o CMakeFiles/redmax_py.dir/Joint/JointDesignParameters.cpp.o CMakeFiles/redmax_py.dir/Joint/JointFixed.cpp.o CMakeFiles/redmax_py.dir/Joint/JointFree2D.cpp.o CMakeFiles/redmax_py.dir/Joint/JointFree3DEuler.cpp.o CMakeFiles/redmax_py.dir/Joint/JointFree3DExp.cpp.o CMakeFiles/redmax_py.dir/Joint/JointPlanar.cpp.o CMakeFiles/redmax_py.dir/Joint/JointPrismatic.cpp.o CMakeFiles/redmax_py.dir/Joint/JointRevolute.cpp.o CMakeFiles/redmax_py.dir/Joint/JointSphericalEuler.cpp.o CMakeFiles/redmax_py.dir/Joint/JointSphericalExp.cpp.o CMakeFiles/redmax_py.dir/Joint/JointTranslational.cpp.o CMakeFiles/redmax_py.dir/Robot.cpp.o CMakeFiles/redmax_py.dir/Sensor/TactileSensor.cpp.o CMakeFiles/redmax_py.dir/Sensor/TactileSensorAbstract.cpp.o CMakeFiles/redmax_py.dir/Sensor/TactileSensorRectArray.cpp.o CMakeFiles/redmax_py.dir/SimEnvGenerator.cpp.o CMakeFiles/redmax_py.dir/SimViewer.cpp.o CMakeFiles/redmax_py.dir/Simulation.cpp.o CMakeFiles/redmax_py.dir/Simulation_Constructor.cpp.o CMakeFiles/redmax_py.dir/Test.cpp.o CMakeFiles/redmax_py.dir/VirtualObject/VirtualObject.cpp.o CMakeFiles/redmax_py.dir/VirtualObject/VirtualObjectCuboid.cpp.o CMakeFiles/redmax_py.dir/VirtualObject/VirtualObjectSphere.cpp.o CMakeFiles/redmax_py.dir/main.cpp.o  ../opengl_viewer/libopengl_viewer.a ../../externals/pugixml/libpugixml.a ../../externals/tiny_obj_loader/libtiny_obj_loader.a ../../externals/libimgui.a ../../externals/libglew.a /usr/lib/x86_64-linux-gnu/libGL.so /usr/lib/x86_64-linux-gnu/libGLU.so ../../externals/glfw/src/libglfw3.a /usr/lib/x86_64-linux-gnu/librt.a -lm /usr/lib/x86_64-linux-gnu/libX11.so /usr/lib/x86_64-linux-gnu/libXrandr.so /usr/lib/x86_64-linux-gnu/libXinerama.so /usr/lib/x86_64-linux-gnu/libXxf86vm.so /usr/lib/x86_64-linux-gnu/libXcursor.so -lX11 -lXi -lXrandr -lXxf86vm -lXinerama -lXcursor -lrt -lm -lpthread -ldl -ldl 
+[100%] Built target redmax_py
+creating build/bdist.linux-x86_64
+creating build/bdist.linux-x86_64/egg
+copying build/lib.linux-x86_64-cpython-38/redmax_py.cpython-38-x86_64-linux-gnu.so -> build/bdist.linux-x86_64/egg
+creating stub loader for redmax_py.cpython-38-x86_64-linux-gnu.so
+byte-compiling build/bdist.linux-x86_64/egg/redmax_py.py to redmax_py.cpython-38.pyc
+creating build/bdist.linux-x86_64/egg/EGG-INFO
+copying redmax_py.egg-info/PKG-INFO -> build/bdist.linux-x86_64/egg/EGG-INFO
+copying redmax_py.egg-info/SOURCES.txt -> build/bdist.linux-x86_64/egg/EGG-INFO
+copying redmax_py.egg-info/dependency_links.txt -> build/bdist.linux-x86_64/egg/EGG-INFO
+copying redmax_py.egg-info/not-zip-safe -> build/bdist.linux-x86_64/egg/EGG-INFO
+copying redmax_py.egg-info/top_level.txt -> build/bdist.linux-x86_64/egg/EGG-INFO
+writing build/bdist.linux-x86_64/egg/EGG-INFO/native_libs.txt
+creating 'dist/redmax_py-0.0.1-py3.8-linux-x86_64.egg' and adding 'build/bdist.linux-x86_64/egg' to it
+removing 'build/bdist.linux-x86_64/egg' (and everything under it)
+Processing redmax_py-0.0.1-py3.8-linux-x86_64.egg
+removing '/home/idanshen/anaconda3/envs/tactile_control_env/lib/python3.8/site-packages/redmax_py-0.0.1-py3.8-linux-x86_64.egg' (and everything under it)
+creating /home/idanshen/anaconda3/envs/tactile_control_env/lib/python3.8/site-packages/redmax_py-0.0.1-py3.8-linux-x86_64.egg
+Extracting redmax_py-0.0.1-py3.8-linux-x86_64.egg to /home/idanshen/anaconda3/envs/tactile_control_env/lib/python3.8/site-packages
+redmax-py 0.0.1 is already the active version in easy-install.pth
+
+Installed /home/idanshen/anaconda3/envs/tactile_control_env/lib/python3.8/site-packages/redmax_py-0.0.1-py3.8-linux-x86_64.egg
+Processing dependencies for redmax-py==0.0.1
+Finished processing dependencies for redmax-py==0.0.1

@@ -17,10 +17,7 @@ BodyMeshObj::BodyMeshObj(
     
     _filename = filename;
 
-    load_mesh(_filename);
-
-    _V = _V.array().colwise() * scale.array();
-
+    load_mesh(_filename, scale);
     process_mesh();
 
     if (transform_type == BODY_TO_JOINT) { // this option is not recommended since the mesh will go through unknown transform during initialization to diagonolize the inertia tensor
@@ -38,11 +35,11 @@ BodyMeshObj::BodyMeshObj(
     } else {
         std::cerr << "[BodyMeshObj::BodyMeshObj] Undefined transform_type: " << transform_type << std::endl;
     }
-
+    precompute_bounding_box();
     precompute_contact_points();
 }
 
-void BodyMeshObj::load_mesh(std::string filename) {
+void BodyMeshObj::load_mesh(std::string filename, Vector3 scale) {
     std::vector<tinyobj::shape_t> obj_shape;
     std::vector<tinyobj::material_t> obj_material;
     tinyobj::attrib_t attrib;
@@ -52,9 +49,9 @@ void BodyMeshObj::load_mesh(std::string filename) {
     int num_vertices = (int)attrib.vertices.size() / 3;
     _V.resize(3, num_vertices);
     for (int i = 0;i < num_vertices;i++) {
-        _V.col(i) = Vector3(attrib.vertices[i * 3], 
-            attrib.vertices[i * 3 + 1],
-            attrib.vertices[i * 3 + 2]);
+       _V.col(i) = Vector3(attrib.vertices[i * 3] * scale[0],
+            attrib.vertices[i * 3 + 1] * scale[1],
+            attrib.vertices[i * 3 + 2] * scale[2]);
     }
     
     int num_elements = (int)obj_shape[0].mesh.indices.size() / 3;
@@ -173,6 +170,11 @@ void BodyMeshObj::compute_mass_property(
                         -offd(1), -offd(0), diag(0) + diag(1)).finished();
 }
 
+void BodyMeshObj::precompute_bounding_box() {
+    _bounding_box.first = _V.rowwise().minCoeff();
+    _bounding_box.second = _V.rowwise().maxCoeff();
+}
+
 void BodyMeshObj::precompute_contact_points() {
     // simple random sample on the surface vertices
     // TODO: more sophisticated sampling
@@ -222,6 +224,26 @@ void BodyMeshObj::get_rendering_objects(
 void BodyMeshObj::update_density(dtype density) {
     _density = density;
     process_mesh();
+}
+
+bool BodyMeshObj::filter_single(Vector3 xi) {
+    if ((xi.array() < _bounding_box.first.array()).any()) {
+        return false;
+    }
+    if ((xi.array() > _bounding_box.second.array()).any()) {
+        return false;
+    }
+    return true;
+}
+
+std::vector<int> BodyMeshObj::filter(Matrix3X xi) {
+    std::vector<int> filter_indices;
+    for (int i = 0;i < xi.cols();++i) {
+        if (filter_single(xi.col(i))) {
+            filter_indices.push_back(i);
+        }
+    }
+    return filter_indices;
 }
 
 }

@@ -15,6 +15,7 @@ target_include_directories(redmax PRIVATE ${SOURCE_DIR}/)
 target_link_libraries(redmax PRIVATE opengl_viewer)
 target_link_libraries(redmax PRIVATE pugixml)
 target_link_libraries(redmax PRIVATE tiny_obj_loader)
+target_link_libraries(redmax PRIVATE sdfgen)
 
 target_include_directories(redmax_py PRIVATE ${EXTERNAL_HEADER})
 target_include_directories(redmax_py PRIVATE ${SOURCE_DIR}/)
@@ -23,6 +24,7 @@ target_include_directories(redmax_py PRIVATE ${SOURCE_DIR}/)
 target_link_libraries(redmax_py PRIVATE opengl_viewer)
 target_link_libraries(redmax_py PRIVATE pugixml)
 target_link_libraries(redmax_py PRIVATE tiny_obj_loader)
+target_link_libraries(redmax_py PRIVATE sdfgen)
 
 # Add libs.
 target_link_libraries(redmax PRIVATE imgui)

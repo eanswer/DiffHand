@@ -648,8 +648,8 @@ void Viewer::MouseWheelScrollCallback(const float y_offset) {
 }
 
 void Viewer::MouseButtonCallback(const int button, const int action) {
-  if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
-    mouse_wheel_pressed_ = (action == GLFW_PRESS || action == GLFW_REPEAT);
+  if (button == GLFW_MOUSE_BUTTON_LEFT || button == GLFW_MOUSE_BUTTON_MIDDLE) {
+      mouse_wheel_pressed_ = (action == GLFW_PRESS || action == GLFW_REPEAT);
   }
 
   // Forward it to ImGuiWrapper.
