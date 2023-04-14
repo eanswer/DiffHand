@@ -232,6 +232,8 @@ public:
         _robot = robot;
     }
 
+    vector<VectorX> get_joint_torques();
+    VectorX get_ground_force(std::string body_name);
     // init simulation
     void init(bool verbose = false);    
 

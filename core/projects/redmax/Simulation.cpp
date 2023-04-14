@@ -4,11 +4,13 @@
 #include "Joint/Joint.h"
 #include "SimViewer.h"
 #include "Force/Force.h"
+#include "Force/ForceGroundContact.h"
 #include "Force/ForceGeneralPrimitiveContact.h"
 #include "VirtualObject/VirtualObject.h"
 #include "Sensor/TactileSensor.h"
 #include "EndEffector/EndEffector.h"
-
+#include <iostream>
+using namespace std;
 namespace redmax {
 
 Simulation::~Simulation() {
@@ -141,6 +143,24 @@ VectorX Simulation::get_ctrl_force() {
 
 void Simulation::print_ctrl_info() {
     _robot->print_ctrl_info();
+}
+
+vector<VectorX> Simulation::get_joint_torques() {
+    return _robot->get_joint_torques();
+}
+
+VectorX Simulation::get_ground_force(std::string body_name) {
+    VectorX fm;
+    for (auto force : _robot->_forces) {
+        if (dynamic_cast<ForceGroundContact*>(const_cast<Force*>(force)) != nullptr) {
+            // cout << dynamic_cast<ForceGroundContact*>(const_cast<Force*>(force))->_contact_body->_name << endl;
+            if (dynamic_cast<ForceGroundContact*>(const_cast<Force*>(force))->_contact_body->_name == body_name) {
+                fm = dynamic_cast<ForceGroundContact*>(force)->_fm;
+                // cout << fm << endl;
+            }
+        }
+    }
+    return fm;
 }
 
 /** tactile related functions **/

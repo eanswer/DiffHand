@@ -14,6 +14,7 @@ public:
     dtype _kt;              // tangential stiffness
     dtype _mu;              // coefficient of friction
     dtype _damping;         // damping of the contact force
+    VectorX _fm;             // contact force in maximum coordinate
 
     ForceGroundContact(Simulation* sim, Body* contact_body, Matrix4 E_g, dtype kn = 1., dtype kt = 0., dtype mu = 0., dtype damping = 0.);
 

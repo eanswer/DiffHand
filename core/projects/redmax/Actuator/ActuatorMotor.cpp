@@ -32,11 +32,13 @@ void ActuatorMotor::computeForce(VectorX& fm, VectorX& fr) {
     if (_control_mode == ControlMode::FORCE) {
         VectorX u = _u.cwiseMin(VectorX::Ones(_joint->_ndof)).cwiseMax(VectorX::Ones(_joint->_ndof) * -1.);
         _fr = map_value(u, VectorX::Constant(_joint->_ndof, -1), VectorX::Ones(_joint->_ndof, 1), _ctrl_min, _ctrl_max).cwiseMin(_ctrl_max).cwiseMax(_ctrl_min);
+        _current_torque = _fr;
         fr.segment(_joint->_index[0], _joint->_ndof) += _fr;
     } else {
         _pos_error = _u - _dofs;
         _vel_error = - _dofs_vel;
         _fr = (_ctrl_P.cwiseProduct(_pos_error) + _ctrl_D.cwiseProduct(_vel_error)).cwiseMin(_ctrl_max).cwiseMax(_ctrl_min);
+        _current_torque = _fr;
         fr.segment(_joint->_index[0], _joint->_ndof) += _fr;
     }
 }

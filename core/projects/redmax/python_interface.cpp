@@ -243,7 +243,13 @@ PYBIND11_MODULE(redmax_py, m) {
                 py::arg("folder"))
 
         .def("print_time_report", &Simulation::print_time_report,
-                "print time report of the simulation.");
+                "print time report of the simulation.")
+
+        .def("get_ground_force", &Simulation::get_ground_force,
+                "Get force applied by the ground on  a specific object", py::arg("body_name"))
+
+        .def("get_joint_torques", &Simulation::get_joint_torques,
+                "Get torques from all the joints of the robot");
 
     m.def("make_sim", &make_sim, "initialize a simulation instance", py::arg("env_name"), py::arg("integrator") = "BDF2");
 }
