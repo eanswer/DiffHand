@@ -1,6 +1,7 @@
 #include "Body/Body.h"
 #include "Body/BodyCuboid.h"
 #include "Body/BodyMeshObj.h"
+#include "Body/BodySDFObj.h"
 #include "Body/BodySphere.h"
 #include "Body/BodyPrimitiveShape.h"
 #include "CollisionDetection/CollisionDetection.h"
@@ -81,5 +82,40 @@ void collision_detection_general_primitive(const Body* contact_body, const Body*
         // not implemented yet
     }
 }
+
+// detect the collision between a general body and a SDF body
+void collision_detection_general_SDF(const Body* contact_body, const BodySDFObj* SDF_body, std::vector<Contact>& contacts) {
+    BodySDFObj* SDF_body_ = const_cast<BodySDFObj*>(SDF_body);
+
+    // AABB bounding box check
+    if (dynamic_cast<BodySDFObj*>(const_cast<Body*>(contact_body)) != nullptr) {
+        BodySDFObj* contact_sdf_body_ = dynamic_cast<BodySDFObj*>(const_cast<Body*>(contact_body));
+        std::pair<Vector3, Vector3> aabb1 = contact_sdf_body_->get_AABB();
+        std::pair<Vector3, Vector3> aabb2 = SDF_body_->get_AABB();
+        for (int axis = 0; axis < 3;axis ++) {
+            if (aabb1.second[axis] < aabb2.first[axis] - 1e-6 || aabb2.second[axis] < aabb1.first[axis] - 1e-6) {
+                return;
+            }
+        }
+    }
+
+    std::vector<Vector3> contact_points = contact_body->get_contact_points();
+
+    // if (dynamic_cast<BodyCuboid*>(const_cast<Body*>(contact_body)) != nullptr) {
+    //     BodyCuboid* cuboid_body_ = dynamic_cast<BodyCuboid*>(const_cast<Body*>(contact_body));
+    //     contact_points = cuboid_body_->get_general_contact_points();
+    // }
+
+    Matrix4 E_w1 = contact_body->_E_0i;
+
+    for (int i = 0;i < contact_points.size();i++) {
+        Vector3 xw1 = E_w1.topLeftCorner(3, 3) * contact_points[i] + E_w1.topRightCorner(3, 1);
+        dtype d = SDF_body_->distance(xw1);
+        if (d < 0.) {
+            contacts.push_back(Contact(contact_points[i], xw1, d, Vector3::Zero(), i));
+        }
+    }
+}
+
 
 }

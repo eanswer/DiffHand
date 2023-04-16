@@ -41,6 +41,8 @@ public:
         _end_effectors.clear();
     }
 
+    vector<VectorX> get_joint_torques();
+
     void add_tactile_sensor(TactileSensor* tactile_sensor);
 
     void add_force(Force* force);

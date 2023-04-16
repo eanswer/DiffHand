@@ -15,6 +15,7 @@ set(EXTERNAL_HEADER
   "${CMAKE_CURRENT_LIST_DIR}/stb"
   "${CMAKE_CURRENT_LIST_DIR}/pugixml/src"
   "${CMAKE_CURRENT_LIST_DIR}/tiny_obj_loader"
+  "${CMAKE_CURRENT_LIST_DIR}/sdfgen"
 )
 
 include_directories(${EXTERNAL_HEADER})
@@ -27,6 +28,9 @@ add_subdirectory(pugixml)
 
 # pybind11
 add_subdirectory(pybind11)
+
+# sdfgen
+add_subdirectory(sdfgen)
 
 # viewer related
 if(MSVC AND NOT "${MSVC_VERSION}" LESS 1400)

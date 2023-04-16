@@ -13,7 +13,7 @@ public:
     Matrix3Xi _F;            // face elements
     SE3 _E_oi;               // transform from body frame to obj frame
     SE3 _E_io;               // transform from obj frame to body frame
-    SE3 _E_0i;               // transform from body frame to world frame
+    // SE3 _E_0i;               // transform from body frame to world frame
 
     enum TransformType {
         BODY_TO_JOINT,
@@ -36,15 +36,21 @@ public:
         std::vector<opengl_viewer::Animator*>& animator_list);
 
     void update_density(dtype density);
+
+    bool filter_single(Vector3 xi);
+
+    std::vector<int> filter(Matrix3X xi);
     
 private:
-    void load_mesh(std::string filename);
+    void load_mesh(std::string filename, Vector3 scale);
 
     void process_mesh();
 
     void compute_mass_property(const Matrix3X &V, const Matrix3Xi &F, /*input*/
                                 dtype &mass, Vector3 &COM,          /*output*/
                                 Matrix3 &I);
+
+    void precompute_bounding_box();
 
     void precompute_contact_points();
 };

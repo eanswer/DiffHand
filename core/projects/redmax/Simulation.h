@@ -87,6 +87,9 @@ private:
     void integration_BDF1(const VectorX q0, const VectorX qdot0, const dtype h, VectorX& q1, VectorX& qdot1);
     void integration_SDIRK2(const VectorX q0, const VectorX qdot0, const dtype h, VectorX& q1, VectorX& qdot1);
     void integration_BDF2(const VectorX q0, const VectorX qdot0, const VectorX q1, const VectorX qdot1, const dtype h, VectorX& q2, VectorX& qdot2);
+    void integration_Euler(const VectorX q0, const VectorX qdot0, const dtype h, VectorX& q1, VectorX& qdot1);
+    void integration_Midpoint(const VectorX q0, const VectorX qdot0, const dtype h, VectorX& q1, VectorX& qdot1);
+    void integration_RK4(const VectorX q0, const VectorX qdot0, const dtype h, VectorX& q1, VectorX& qdot1);
 
     // backward methods
     void backward_BDF1();
@@ -229,6 +232,8 @@ public:
         _robot = robot;
     }
 
+    vector<VectorX> get_joint_torques();
+    VectorX get_ground_force(std::string body_name);
     // init simulation
     void init(bool verbose = false);    
 

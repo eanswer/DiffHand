@@ -7,6 +7,7 @@ namespace redmax {
 
 class Body;
 class BodyCuboid;
+class BodySDFObj;
 
 // detect the collision between ground and a cuboid body
 // return the list of the contact points represented in body frame.
@@ -18,4 +19,7 @@ void collision_detection_cuboid_cuboid(const BodyCuboid* cuboid1, const BodyCubo
 // the general body should be able to give a list of contact points on the surface.
 // the primitive body is supposed to have an anlytical distance field
 void collision_detection_general_primitive(const Body* contact_body, const Body* primitive_body, std::vector<Contact>& contacts);
+
+// detect the collision between a general body and a SDF body
+void collision_detection_general_SDF(const Body* contact_body, const BodySDFObj* SDF_body, std::vector<Contact>& contacts);
 }

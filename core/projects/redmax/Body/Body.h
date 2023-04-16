@@ -33,6 +33,9 @@ public:
     // contacts
     std::vector<Vector3> _contact_points;
 
+    std::pair<Vector3, Vector3> _bounding_box; // bounding box of the body
+
+
     // index
     vector<int> _index;                 // index for phi in maximal coordinates
 
@@ -128,6 +131,8 @@ public:
     // update parameters
     virtual void update_density(dtype density) {};
     virtual void update_size(VectorX body_size) {};
+
+    std::pair<Vector3, Vector3> get_AABB();
 protected:
     BodyAnimator* _animator;
 

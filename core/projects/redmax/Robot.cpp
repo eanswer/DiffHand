@@ -3,6 +3,7 @@
 #include "Body/Body.h"
 #include "Force/Force.h"
 #include "Actuator/Actuator.h"
+#include "Actuator/ActuatorMotor.h"
 #include "EndEffector/EndEffector.h"
 #include "VirtualObject/VirtualObject.h"
 #include "Joint/JointDesignParameters.h"
@@ -13,6 +14,14 @@
 #include "Sensor/TactileSensor.h"
 
 namespace redmax {
+
+vector<VectorX> Robot::get_joint_torques(){
+    vector<VectorX> joint_torques;
+    for (auto actuator : _actuators) {
+        joint_torques.push_back(dynamic_cast<ActuatorMotor*>(actuator)->_current_torque);
+    }
+    return joint_torques;
+}
 
 void Robot::add_tactile_sensor(TactileSensor* tactile_sensor) {
     _tactile_sensors.push_back(tactile_sensor);

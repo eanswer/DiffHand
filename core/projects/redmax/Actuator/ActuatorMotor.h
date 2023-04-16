@@ -14,6 +14,7 @@ public:
     VectorX _ctrl_P, _ctrl_D;
     // stored temporary variables
     VectorX _pos_error, _vel_error;
+    VectorX _current_torque;
 
     ActuatorMotor(std::string name, Joint* joint, ControlMode control_mode, 
                     VectorX ctrl_min, VectorX ctrl_max, 

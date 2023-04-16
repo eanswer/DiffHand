@@ -459,4 +459,27 @@ Vector3 Body::velocity_in_world(Vector3 pos) const {
     return vel;
 }
 
+std::pair<Vector3, Vector3> Body::get_AABB() {
+    std::pair<Vector3, Vector3> aabb;
+    double p[2][3];
+    p[0][0] = _bounding_box.first[0], p[0][1] = _bounding_box.first[1], p[0][2] = _bounding_box.first[2];
+    p[1][0] = _bounding_box.second[0], p[1][1] = _bounding_box.second[1], p[1][2] = _bounding_box.second[2];
+    for (int x = 0;x < 2;++x)
+        for (int y = 0;y < 2;++y)
+            for (int z = 0;z < 2;++z) {
+                Vector3 vert(p[x][0], p[y][1], p[z][2]);
+                Vector3 vert_world = position_in_world(vert);
+                if (x == 0 && y == 0 && z == 0) {
+                    aabb.first = vert_world;
+                    aabb.second = vert_world;
+                } else {
+                    for (int axis = 0;axis < 3;++axis) {
+                        aabb.first[axis] = min(aabb.first[axis], vert_world[axis]);
+                        aabb.second[axis] = max(aabb.second[axis], vert_world[axis]);
+                    }
+                }
+            }
+    return aabb;
+}
+
 }

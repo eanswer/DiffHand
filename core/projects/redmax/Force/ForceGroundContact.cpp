@@ -143,7 +143,8 @@ void ForceGroundContact::computeForce(std::vector<Contact> &contacts, VectorX& f
             // std::cerr << "fd = " << fd.transpose() << std::endl;
             fm.segment(_contact_body->_index[0], 6).noalias() += J.transpose() * fd;
         }
-    }   
+    }
+    _fm = fm.segment(_contact_body->_index[0], 6);
 }
 
 void ForceGroundContact::computeForceWithDerivative(std::vector<Contact> &contacts, 
